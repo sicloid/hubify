@@ -57,8 +57,6 @@ export async function toggleDocumentApproval(documentId: string, nextApproved: b
     where: { id: documentId },
     data: { isApproved: nextApproved },
   });
-
-  revalidatePath("/icc-uzmani");
 }
 
 export async function finalizeIccReview(tradeRequestId: string) {
