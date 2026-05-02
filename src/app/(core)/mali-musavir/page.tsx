@@ -153,6 +153,7 @@ export default async function FinancialAdvPage() {
           <div className="p-12 border-2 border-dashed border-slate-200 rounded-3xl text-center text-slate-400 font-bold uppercase tracking-widest text-xs">Bekleyen işlem bulunmuyor</div>
         )}
       </div>
+      </div>
 
       {/* Completed History */}
       <div className="space-y-4">
