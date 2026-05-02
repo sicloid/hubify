@@ -2,7 +2,29 @@
 
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth-utils";
-import { TradeStatus } from "@prisma/client";
+import { TradeStatus, UserRole } from "@prisma/client";
+import { revalidatePath } from "next/cache";
+
+export async function updateUserRole(userId: string, newRole: UserRole) {
+  // BOLA/IDOR protection: Check if current user is ADMIN
+  await requireAdmin();
+
+  if (!userId || !newRole) {
+    return { error: "Geçersiz parametreler." };
+  }
+
+  try {
+    await prisma.user.update({
+      where: { id: userId },
+      data: { role: newRole },
+    });
+
+    revalidatePath("/admin");
+    return { success: true };
+  } catch (error) {
+    return { error: "Rol güncellenirken bir hata oluştu." };
+  }
+}
 
 export async function getLiveSystemLogs() {
   await requireAdmin();
