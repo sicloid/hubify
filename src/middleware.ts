@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { jwtVerify } from "jose";
+import { dashboardPathForRole } from "@/lib/role-routes";
 
 const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || "hubify-super-secret-key-12345"
@@ -8,31 +9,29 @@ const JWT_SECRET = new TextEncoder().encode(
 
 export async function middleware(request: NextRequest) {
   const token = request.cookies.get("hubify_session")?.value;
-  const isAuthPage = request.nextUrl.pathname.startsWith("/login") || request.nextUrl.pathname.startsWith("/register");
-  const isPublicPage = request.nextUrl.pathname === "/";
-  
-  // Protect all core routes (anything not public, not auth, not api/static)
-  // But wait, the easiest way is to protect all routes except public ones.
-  // We'll rely on requireAuth in the layout, but middleware can provide a fast redirect.
+  const path = request.nextUrl.pathname;
+  const isLoginPage = path.startsWith("/login");
+  const isRegisterPage = path.startsWith("/register");
+  const isAuthPage = isLoginPage || isRegisterPage;
+  const isPublicPage = path === "/";
 
-  if (token && isAuthPage) {
-    let targetUrl = "/";
+  if (!token && !isPublicPage && !isAuthPage) {
+    return NextResponse.redirect(new URL("/login", request.url));
+  }
+
+  // Login sayfası her zaman erişilebilir olsun (hesap değişimi / yeniden giriş).
+  // Sadece register sayfasında aktif oturumu panele yönlendiriyoruz.
+  if (token && isRegisterPage) {
     try {
       const verified = await jwtVerify(token, JWT_SECRET);
-      const role = (verified.payload as any).role;
-      const roleRoutes: Record<string, string> = {
-        ADMIN: "/admin",
-        EXPORTER: "/ihracatci",
-        LOGISTICS: "/lojistik",
-        ICC_EXPERT: "/icc-uzmani",
-        FINANCIAL_ADV: "/mali-musavir",
-        INSURER: "/sigorta",
-      };
-      targetUrl = roleRoutes[role] || "/";
-    } catch (e) {
-      // Invalid token
+      const role = (verified.payload as { role?: string }).role;
+      const targetUrl = dashboardPathForRole(role);
+      return NextResponse.redirect(new URL(targetUrl, request.url));
+    } catch {
+      const res = NextResponse.next();
+      res.cookies.delete("hubify_session");
+      return res;
     }
-    return NextResponse.redirect(new URL(targetUrl, request.url));
   }
 
   return NextResponse.next();

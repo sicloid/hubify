@@ -19,7 +19,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="tr" className={`${inter.variable} antialiased h-full`}>
-      <body className="min-h-full flex flex-col bg-slate-50 text-slate-900 font-sans">
+      {/* suppressHydrationWarning: eklentiler (örn. şifre yöneticisi) body'ye attribute ekleyebilir */}
+      <body
+        className="min-h-full flex flex-col bg-slate-50 text-slate-900 font-sans"
+        suppressHydrationWarning
+      >
         {children}
       </body>
     </html>

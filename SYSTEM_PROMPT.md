@@ -17,8 +17,20 @@ Bu proje Next.js 14+ (App Router) kullanılarak Route Group'lar ile 3 ana izole 
 2. `app/(operasyon)`: Mikro-ihracat Talepleri, KOBİ/Üretici Ürün Girişi, Lojistik Konsolidasyonu, Depolama ve Fiyat Teklifleri.
 3. `app/(finans-belge)`: Dış Ticaret Belgeleri, ICC Uzman Arabuluculuğu, Mali Müşavir, Sigorta, Muhasebe.
 
-**[!!! DİKKAT !!!] - SENİN MEVCUT GÖREV ALANIN:**
-*(Proje yöneticisi tarafından sana atanan spesifik Route Group neyse SADECE o klasörde çalışacaksın. Kendi alanın dışındaki klasörlere ASLA DOKUNMA.)*
+**[!!! DİKKAT !!!] - ATANMIŞ AGENT / MODÜL: `app/(finans-belge)`**
+
+Bu repoda atanmış geliştirme alanın **yalnızca** şu klasördür: **`src/app/(finans-belge)`** (“Evrak, Para ve Güvence”).
+
+| Alan | Route (URL) | Sorumluluk |
+|------|-------------|------------|
+| **Belge Yönetimi** | `/evraklar` | DT/ICC vb. ticari evrak yükleme, inceleme ve onay panelleri (konşimento, fatura, gümrük beyanı vb.). |
+| **Finans & Muhasebe** | `/para-akisi` | Mali müşavir / Muhasebe rolleri için nakit akışı, ödeme/onay özeti ve muhasebe odaklı ekranlar. |
+| **Sigorta Modülü** | `/sigorta` | Sigortacıların gönderiye göre teminat, poliçe teklifi ve değerleme süreçleri (teknik olarak bu route grubunda yaşar). |
+
+**KESİN YASAK:** `app/(auth)`, `app/(core)`, `app/(operasyon)`, ortak bileşenler (`components/`), kimlik doğrulama/login/register, admin kullanıcı yöneticisi ve lojistik/talep ekranlarında **özellik geliştirme veya mimari refaktör yapılmaz** — yalnızca bu modül için zorunlu güvenlik (örn. middleware’de yeni korunan `/para-akisi` vb. path eklemesi) minimal şekilde mümkündür.
+
+**[!!! GENEL !!!] — SENİN MEVCUT GÖREV ALANIN (ÇOKLU GELİŞTİRİCİ):**
+*(Birden fazla agent varken, yukarıda Route Group’un ne ise SADECE o klasörde çalış. Kendi atanan alanın dışındaki dosyalara dokunma.)*
 
 ## 🛑 KESİN YASAKLAR (KIRMIZI ÇİZGİLER)
 - **Görev Dışı Dosya Düzenleme YASAKTIR:** Sana atanan modül dışındaki hiçbir sayfaya veya Route Group klasörüne dokunmayacaksın.

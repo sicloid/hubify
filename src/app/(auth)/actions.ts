@@ -1,7 +1,9 @@
 "use server";
 
+import type { UserRole } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { createSession } from "@/lib/auth-utils";
+import { ROLE_DEFAULT_PATH } from "@/lib/role-routes";
 import bcrypt from "bcryptjs";
 import { redirect } from "next/navigation";
 
@@ -33,16 +35,7 @@ export async function loginAction(prevState: any, formData: FormData) {
     fullName: user.fullName,
   });
 
-  const roleRoutes: Record<string, string> = {
-    ADMIN: "/admin",
-    EXPORTER: "/ihracatci",
-    LOGISTICS: "/lojistik",
-    ICC_EXPERT: "/icc-uzmani",
-    FINANCIAL_ADV: "/mali-musavir",
-    INSURER: "/sigorta",
-  };
-
-  const targetRoute = roleRoutes[user.role] || "/";
+  const targetRoute = ROLE_DEFAULT_PATH[user.role as UserRole] ?? "/login";
   redirect(targetRoute);
 }
 
