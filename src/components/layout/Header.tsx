@@ -2,9 +2,10 @@
 
 import { LogOut, Bell, Search, Globe, LifeBuoy, X, Send, AlertTriangle, MessageSquare, ShieldAlert } from "lucide-react";
 import { logoutAction } from "@/lib/auth-actions";
+import { submitSupportTicket } from "@/lib/support-actions";
 import { useRouter } from "next/navigation";
 import { AuthSession } from "@/lib/auth-utils";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const roleLabels: Record<string, string> = {
@@ -31,16 +32,30 @@ export default function Header({ session }: { session?: AuthSession | null }) {
     router.push("/login");
   };
 
-  const handleSupportSubmit = (e: React.FormEvent) => {
+  const formRef = useRef<HTMLFormElement>(null);
+
+  const handleSupportSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formRef.current) return;
+    
     setSupportState('sending');
-    setTimeout(() => {
+    
+    const formData = new FormData(formRef.current);
+    const type = formData.get('type') as 'BUG' | 'FEATURE';
+    const description = formData.get('description') as string;
+
+    const result = await submitSupportTicket(type, description);
+
+    if (result.success) {
       setSupportState('success');
       setTimeout(() => {
         setIsSupportOpen(false);
         setTimeout(() => setSupportState('idle'), 300); // Reset after close
       }, 2000);
-    }, 1500);
+    } else {
+      alert("Hata: " + result.error);
+      setSupportState('idle');
+    }
   };
 
   return (
@@ -161,20 +176,20 @@ export default function Header({ session }: { session?: AuthSession | null }) {
                 </div>
 
                 {/* Modal Body */}
-                <form onSubmit={handleSupportSubmit} className="p-6 space-y-6">
+                <form ref={formRef} onSubmit={handleSupportSubmit} className="p-6 space-y-6">
                   <div className="space-y-4">
                     <div>
                       <label className="block text-sm font-bold text-slate-700 mb-2">Bildirim Türü</label>
                       <div className="grid grid-cols-2 gap-3">
                         <label className="cursor-pointer group">
-                          <input type="radio" name="type" className="peer sr-only" defaultChecked />
+                          <input type="radio" name="type" value="BUG" className="peer sr-only" defaultChecked />
                           <div className="p-4 border-2 border-slate-100 rounded-2xl peer-checked:border-rose-500 peer-checked:bg-rose-50 transition-all text-center">
                             <ShieldAlert className="w-6 h-6 mx-auto mb-2 text-slate-400 peer-checked:text-rose-500 group-hover:scale-110 transition-transform" />
                             <span className="block text-sm font-bold text-slate-600 peer-checked:text-rose-700">Teknik Hata (Bug)</span>
                           </div>
                         </label>
                         <label className="cursor-pointer group">
-                          <input type="radio" name="type" className="peer sr-only" />
+                          <input type="radio" name="type" value="FEATURE" className="peer sr-only" />
                           <div className="p-4 border-2 border-slate-100 rounded-2xl peer-checked:border-indigo-500 peer-checked:bg-indigo-50 transition-all text-center">
                             <MessageSquare className="w-6 h-6 mx-auto mb-2 text-slate-400 peer-checked:text-indigo-500 group-hover:scale-110 transition-transform" />
                             <span className="block text-sm font-bold text-slate-600 peer-checked:text-indigo-700">İstek / Öneri</span>
@@ -186,6 +201,7 @@ export default function Header({ session }: { session?: AuthSession | null }) {
                     <div>
                       <label className="block text-sm font-bold text-slate-700 mb-2">Detaylı Açıklama</label>
                       <textarea 
+                        name="description"
                         required
                         placeholder="Lütfen karşılaştığınız sorunu veya talebinizi detaylıca açıklayın..."
                         className="w-full h-32 p-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 outline-none transition-all resize-none"

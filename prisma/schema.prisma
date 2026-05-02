@@ -37,6 +37,17 @@ enum DocumentType {
   OTHER
 }
 
+enum TicketType {
+  BUG
+  FEATURE
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+}
+
 model User {
   id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   email        String   @unique
@@ -51,6 +62,7 @@ model User {
   quotes        LogisticsQuote[]
   documents     Document[]
   systemLogs    SystemLog[]
+  supportTickets SupportTicket[]
 }
 
 model TradeRequest {
@@ -113,4 +125,17 @@ model SystemLog {
   user      User?    @relation(fields: [userId], references: [id])
   
   createdAt DateTime @default(now())
+}
+
+model SupportTicket {
+  id          String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  type        TicketType
+  description String
+  status      TicketStatus @default(OPEN)
+  
+  userId      String?      @db.Uuid
+  user        User?        @relation(fields: [userId], references: [id])
+  
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
 }
