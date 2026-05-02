@@ -10,7 +10,8 @@ datasource db {
 
 enum UserRole {
   ADMIN
-  EXPORTER        // İhracatçı
+  EXPORTER        // İhracatçı (Satıcı)
+  BUYER           // Alıcı
   LOGISTICS       // Lojistikçi
   ICC_EXPERT      // ICC Uzmanı
   FINANCIAL_ADV   // Mali Müşavir
@@ -18,8 +19,8 @@ enum UserRole {
 }
 
 enum TradeStatus {
-  PENDING
-  REVIEWING
+  PENDING             // İhracatçı ürünü listeledi, alıcı bekleniyor
+  ORDERED             // Alıcı sipariş verdi, lojistik bekleniyor
   QUOTING
   LOGISTICS_APPROVED
   DOCUMENTS_PENDING
@@ -53,15 +54,16 @@ model User {
   email        String   @unique
   passwordHash String
   fullName     String
-  role         UserRole @default(EXPORTER)
+  role         UserRole @default(BUYER)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
   // İlişkiler
-  tradeRequests TradeRequest[] @relation("ExporterRequests")
-  quotes        LogisticsQuote[]
-  documents     Document[]
-  systemLogs    SystemLog[]
+  tradeRequests  TradeRequest[] @relation("ExporterRequests")
+  buyerOrders    TradeRequest[] @relation("BuyerOrders")
+  quotes         LogisticsQuote[]
+  documents      Document[]
+  systemLogs     SystemLog[]
   supportTickets SupportTicket[]
 }
 
@@ -75,6 +77,9 @@ model TradeRequest {
   
   exporterId      String       @db.Uuid
   exporter        User         @relation("ExporterRequests", fields: [exporterId], references: [id])
+
+  buyerId         String?      @db.Uuid
+  buyer           User?        @relation("BuyerOrders", fields: [buyerId], references: [id])
   
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt

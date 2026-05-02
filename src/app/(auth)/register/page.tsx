@@ -1,13 +1,14 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { registerAction } from "../actions";
 import Link from "next/link";
-import { ArrowRight, Mail, Lock, User as UserIcon, Globe, CheckCircle2, Shield } from "lucide-react";
+import { ArrowRight, Mail, Lock, User as UserIcon, Globe, CheckCircle2, Shield, ShoppingCart, Package } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function RegisterPage() {
   const [state, formAction, isPending] = useActionState(registerAction, null);
+  const [selectedRole, setSelectedRole] = useState<"BUYER" | "EXPORTER">("BUYER");
 
   const containerVariants: any = {
     hidden: { opacity: 0, y: 50 },
@@ -75,6 +76,37 @@ export default function RegisterPage() {
                 {state.error}
               </motion.div>
             )}
+
+            {/* Role Selection */}
+            <input type="hidden" name="role" value={selectedRole} />
+            <motion.div variants={childVariants} className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setSelectedRole("BUYER")}
+                className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
+                  selectedRole === "BUYER"
+                    ? "border-sky-500 bg-sky-50 shadow-md shadow-sky-100"
+                    : "border-slate-200 bg-slate-50 hover:border-slate-300"
+                }`}
+              >
+                <ShoppingCart className={`w-6 h-6 ${selectedRole === "BUYER" ? "text-sky-600" : "text-slate-400"}`} />
+                <span className={`text-sm font-bold ${selectedRole === "BUYER" ? "text-sky-700" : "text-slate-500"}`}>Alıcıyım</span>
+                <span className="text-[10px] text-slate-400">Ürün satın almak istiyorum</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectedRole("EXPORTER")}
+                className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
+                  selectedRole === "EXPORTER"
+                    ? "border-emerald-500 bg-emerald-50 shadow-md shadow-emerald-100"
+                    : "border-slate-200 bg-slate-50 hover:border-slate-300"
+                }`}
+              >
+                <Package className={`w-6 h-6 ${selectedRole === "EXPORTER" ? "text-emerald-600" : "text-slate-400"}`} />
+                <span className={`text-sm font-bold ${selectedRole === "EXPORTER" ? "text-emerald-700" : "text-slate-500"}`}>İhracatçıyım</span>
+                <span className="text-[10px] text-slate-400">Ürün satmak istiyorum</span>
+              </button>
+            </motion.div>
 
             <motion.div variants={childVariants}>
               <label className="block text-sm font-medium text-slate-700 mb-1">Ad Soyad / Firma Adı</label>

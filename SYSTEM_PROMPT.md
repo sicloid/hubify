@@ -10,11 +10,12 @@ Sana atanan görevi yaparken **ASLA** bu dosyadaki vizyonun, pipeline'ın ve gö
 
 ## 🔄 2. HUBIFY İŞ AKIŞI (PIPELINE)
 Tüm veritabanı ve durum (status) akışı bu pipeline'a göre tasarlanmalıdır:
-1. **Talep (İhracatçı):** Satıcı/İhracatçı sisteme yükünü girer (Örn: 50 kg, Hedef: Berlin).
-2. **Konsolidasyon (Lojistik):** Lojistik firması, Berlin'e giden diğer satıcıların yükleriyle bu yükü birleştirir (Konteyner Havuzu) ve toplam bir hacim yaratarak fiyat teklifi sunar.
-3. **Yasal Onay (ICC Uzmanı):** Teklif kabul edilince ICC uzmanı, konsolide edilen yüklerin gümrük yasalarına uygunluğunu denetler, sertifikalarını sisteme yükler.
-4. **Finans (Mali Müşavir):** İhracat faturaları (e-Fatura) ve KDV iade işlemleri mali müşavir tarafından sisteme işlenir.
-5. **Güvence (Sigorta):** Sigortacı nakliye sigorta poliçesini ekler. Yük yola çıkar.
+1. **İlan (Satıcı/İhracatçı):** Satıcı sisteme ürününü listeler (status: `PENDING`).
+2. **Sipariş (Alıcı/BUYER):** Alıcı ürünü satın alır (status: `ORDERED`). **Bu adım olmadan hiçbir lojistik veya belge işlemi başlamaz!**
+3. **Konsolidasyon (Lojistik):** Lojistik firması sipariş edilen yükleri konsolide eder ve fiyat teklifi sunar (status: `QUOTING` → `LOGISTICS_APPROVED`).
+4. **Yasal Onay (ICC Uzmanı):** Konsolide edilen yüklerin gümrük yasalarına uygunluğunu denetler.
+5. **Finans (Mali Müşavir):** İhracat faturaları ve KDV iade işlemleri mali müşavir tarafından sisteme işlenir.
+6. **Güvence (Sigorta):** Sigorta poliçesi eklenir, yük yola çıkar (status: `IN_TRANSIT` → `COMPLETED`).
 
 ## 🎬 3. GÖRSEL HİKAYELEŞTİRME VE ETKİLEYİCİ ANİMASYONLAR (ZORUNLUDUR!)
 Hackathon jürilerini etkilemek için kuru tablolar ve hareketsiz formlar KABUL EDİLEMEZ. Sisteme `framer-motion` kurulmuştur ve her modül, kullanıcının işlemi gerçekten hissedeceği şekilde **animasyonlu ve görsel ağırlıklı** olmalıdır.
@@ -34,9 +35,9 @@ Proje 3 geliştiriciye (ve onların yönettiği AI botlara) bölünmüştür. **
 - **Kapsam:** Auth (Giriş/Kayıt), RBAC (Rol yönetimi), sistem radarı/animasyonları.
 
 ### 👤 TAKIM 2: Pazaryeri & Konsolidasyon (Geliştirici 1)
-- **Sorumlu Olduğu Roller:** İhracatçı (`EXPORTER`), Lojistik (`LOGISTICS`)
-- **Çalışma Alanı:** `app/(core)/ihracatci` ve `app/(core)/lojistik`
-- **Kapsam:** Taleplerin oluşturulması, konteyner havuzuna atılması, lojistik konsolidasyonu. (Belge onayı, vergi, fatura YAZMAYACAKSIN).
+- **Sorumlu Olduğu Roller:** İhracatçı (`EXPORTER`), Alıcı (`BUYER`), Lojistik (`LOGISTICS`)
+- **Çalışma Alanı:** `app/(core)/ihracatci`, `app/(core)/pazaryeri` ve `app/(core)/lojistik`
+- **Kapsam:** Ürün ilanlarının oluşturulması, alıcı siparişi, konteyner havuzuna atılması, lojistik konsolidasyonu. (Belge onayı, vergi, fatura YAZMAYACAKSIN).
 
 ### 👤 TAKIM 3: Compliance & Fintech (Geliştirici 2)
 - **Sorumlu Olduğu Roller:** ICC Uzmanı (`ICC_EXPERT`), Mali Müşavir (`FINANCIAL_ADV`), Sigorta (`INSURER`)

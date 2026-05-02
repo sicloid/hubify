@@ -11,7 +11,7 @@ const getCachedAvailableRequests = unstable_cache(
     return prisma.tradeRequest.findMany({
       where: {
         status: {
-          in: [TradeStatus.PENDING, TradeStatus.QUOTING]
+          in: [TradeStatus.ORDERED, TradeStatus.QUOTING]
         }
       },
       orderBy: {
@@ -19,6 +19,9 @@ const getCachedAvailableRequests = unstable_cache(
       },
       include: {
         exporter: {
+          select: { fullName: true }
+        },
+        buyer: {
           select: { fullName: true }
         },
         _count: {
@@ -115,7 +118,7 @@ export async function autoConsolidate() {
   
   try {
     await prisma.tradeRequest.updateMany({
-      where: { status: TradeStatus.PENDING },
+      where: { status: TradeStatus.ORDERED },
       data: { status: TradeStatus.QUOTING }
     });
     
