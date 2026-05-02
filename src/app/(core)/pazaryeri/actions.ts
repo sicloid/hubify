@@ -1,6 +1,7 @@
 'use server';
 
 import { prisma } from "@/lib/prisma";
+import { serializeDecimal } from "@/lib/serialize";
 import { requireAuth, requireRole } from "@/lib/auth-utils";
 import { TradeStatus, UserRole, PaymentStatus } from "@prisma/client";
 import { revalidatePath, revalidateTag } from "next/cache";
@@ -30,11 +31,7 @@ export async function getAvailableProducts() {
 
   try {
     const products = await getCachedProducts();
-    return products.map(p => ({
-      ...p,
-      unitPrice: p.unitPrice ? Number(p.unitPrice) : null,
-      totalPrice: p.totalPrice ? Number(p.totalPrice) : null,
-    }));
+    return products.map(p => serializeDecimal(p));
   } catch (error) {
     console.error("Ürünler çekilirken hata:", error);
     return [];
@@ -131,11 +128,7 @@ export async function getMyOrders() {
 
   try {
     const orders = await getCachedMyOrders();
-    return orders.map(o => ({
-      ...o,
-      unitPrice: o.unitPrice ? Number(o.unitPrice) : null,
-      totalPrice: o.totalPrice ? Number(o.totalPrice) : null,
-    }));
+    return orders.map(o => serializeDecimal(o));
   } catch (error) {
     console.error("Siparişler çekilirken hata:", error);
     return [];

@@ -4,6 +4,7 @@ import { DocumentType, TradeStatus, UserRole, PaymentStatus } from "@prisma/clie
 import { revalidatePath, revalidateTag } from "next/cache";
 import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/prisma";
+import { serializeDecimal } from "@/lib/serialize";
 import { requireRole } from "@/lib/auth-utils";
 import { uploadFileToS3 } from "@/lib/s3-upload";
 
@@ -44,15 +45,7 @@ const getCachedIccRequests = unstable_cache(
       }
     });
 
-    return requests.map(request => ({
-      ...request,
-      unitPrice: request.unitPrice ? Number(request.unitPrice) : null,
-      totalPrice: request.totalPrice ? Number(request.totalPrice) : null,
-      quotes: request.quotes.map(q => ({
-        ...q,
-        price: Number(q.price)
-      }))
-    }));
+    return requests.map(request => serializeDecimal(request));
   },
   ['icc-requests'],
   { tags: ['trade-requests'], revalidate: 30 }

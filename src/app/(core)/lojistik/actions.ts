@@ -1,6 +1,7 @@
 'use server';
 
 import { prisma } from "@/lib/prisma";
+import { serializeDecimal } from "@/lib/serialize";
 import { requireAuth, requireRole } from "@/lib/auth-utils";
 import { TradeStatus, UserRole } from "@prisma/client";
 import { revalidatePath, revalidateTag } from "next/cache";
@@ -38,7 +39,8 @@ export async function getAvailableRequests() {
   await requireRole([UserRole.LOGISTICS, UserRole.ADMIN, UserRole.EXPORTER]);
   
   try {
-    return await getCachedAvailableRequests();
+    const data = await getCachedAvailableRequests();
+    return serializeDecimal(data);
   } catch (error) {
     console.error("Havuz verileri çekilirken hata:", error);
     return [];
@@ -67,14 +69,7 @@ export async function getRequestDetail(id: string) {
 
     if (!request) return null;
 
-    // Convert Decimal price to Number for client-side serialization
-    return {
-      ...request,
-      quotes: request.quotes.map(q => ({
-        ...q,
-        price: Number(q.price)
-      }))
-    };
+    return serializeDecimal(request);
   } catch (error) {
     return null;
   }

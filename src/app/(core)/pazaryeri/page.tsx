@@ -16,8 +16,9 @@ const paymentStatusLabels: Record<string, { label: string; color: string }> = {
   REFUNDED: { label: 'İade Edildi', color: 'bg-red-100 text-red-700' },
 };
 
-type Product = Awaited<ReturnType<typeof getAvailableProducts>>[0];
-type Order = Awaited<ReturnType<typeof getMyOrders>>[0];
+// serializeDecimal tüm Decimal alanlarını number'a çevirir; tip güvenliği için any kullanıyoruz
+type Product = Awaited<ReturnType<typeof getAvailableProducts>>[0] & Record<string, any>;
+type Order = Awaited<ReturnType<typeof getMyOrders>>[0] & Record<string, any>;
 
 export default function PazaryeriPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -66,10 +67,11 @@ export default function PazaryeriPage() {
     });
   };
 
-  const formatPrice = (price: number | null, currency: string) => {
-    if (price === null) return 'Fiyat belirtilmemiş';
+  const formatPrice = (price: any, currency: string) => {
+    if (price === null || price === undefined) return 'Fiyat belirtilmemiş';
+    const num = Number(price);
     const sym = currencySymbol[currency] || currency;
-    return `${sym}${price.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}`;
+    return `${sym}${num.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}`;
   };
 
   return (

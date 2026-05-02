@@ -1,6 +1,7 @@
 'use server';
 
 import { prisma } from "@/lib/prisma";
+import { serializeDecimal } from "@/lib/serialize";
 import { requireAuth, requireRole } from "@/lib/auth-utils";
 import { TradeStatus, UserRole } from "@prisma/client";
 import { revalidatePath, revalidateTag } from "next/cache";
@@ -69,7 +70,8 @@ export async function getTradeRequests() {
   );
 
   try {
-    return await getCachedTradeRequests();
+    const data = await getCachedTradeRequests();
+    return serializeDecimal(data);
   } catch (error) {
     console.error("Talepler çekilirken hata oluştu:", error);
     return [];
@@ -95,13 +97,7 @@ export async function getTradeRequestDetail(id: string) {
 
       if (!request) return null;
 
-      return {
-        ...request,
-        quotes: request.quotes.map(q => ({
-          ...q,
-          price: Number(q.price)
-        }))
-      };
+      return serializeDecimal(request);
     },
     [`trade-detail-${id}-${session.id}`],
     { tags: ['trade-requests'], revalidate: 30 }
