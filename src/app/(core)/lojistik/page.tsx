@@ -60,7 +60,7 @@ export default function LojistikPage() {
   const lastRequest = [...poolRequests].sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())[0];
   const lastIncrease = lastRequest ? Math.round((lastRequest.weight / capacity) * 100) : 0;
 
-  const pendingRequests = talepler.filter(t => t.status === TradeStatus.PENDING);
+  const pendingRequests = talepler.filter(t => t.status === TradeStatus.ORDERED);
 
   return (
     <div className="space-y-8 pb-12">
@@ -198,7 +198,7 @@ export default function LojistikPage() {
 
           <div className="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm">
             <div className="p-6 border-b border-slate-100 flex justify-between items-center">
-              <h3 className="font-bold text-slate-800">Havuz Bekleyen Mikro-Talepler</h3>
+              <h3 className="font-bold text-slate-800">Sipariş Alınmış Mikro-Talepler</h3>
             </div>
             
             {isLoading ? (
@@ -207,7 +207,7 @@ export default function LojistikPage() {
               </div>
             ) : pendingRequests.length === 0 ? (
               <div className="p-12 text-center text-slate-400">
-                <p>Şu an havuzda bekleyen mikro-talep bulunmuyor.</p>
+                <p>Şu an sipariş alınmış mikro-talep bulunmuyor.</p>
               </div>
             ) : (
               <div className="divide-y divide-slate-100">

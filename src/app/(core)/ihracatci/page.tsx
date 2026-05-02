@@ -15,6 +15,7 @@ import { GlobalTradeRadar } from "@/components/operasyon/GlobalTradeRadar";
 const mapStatus = (status: TradeStatus): OperationStatus => {
   switch (status) {
     case 'PENDING': return 'Beklemede';
+    case 'ORDERED': return 'Teklif Alındı';
     case 'QUOTING': return 'Teklif Alındı';
     case 'LOGISTICS_APPROVED': return 'Lojistik Onaylandı';
     default: return 'Beklemede';
@@ -40,9 +41,9 @@ export default function IhracatciPage() {
   }, []);
 
   const stats = [
-    { title: "Aktif Talepler", value: talepler.length, icon: <Package className="w-4 h-4" />, color: "text-sky-600" },
-    { title: "Bekleyen Teklifler", value: talepler.filter(t => t.status === 'PENDING').length, icon: <Clock className="w-4 h-4" />, color: "text-amber-600" },
-    { title: "Onaylı Sevkiyatlar", value: talepler.filter(t => t.status === 'LOGISTICS_APPROVED').length, icon: <Truck className="w-4 h-4" />, color: "text-emerald-600" },
+    { title: "Aktif İlanlar", value: talepler.length, icon: <Package className="w-4 h-4" />, color: "text-sky-600" },
+    { title: "Alıcı Bekliyor", value: talepler.filter(t => t.status === 'PENDING').length, icon: <Clock className="w-4 h-4" />, color: "text-amber-600" },
+    { title: "Sipariş Alındı", value: talepler.filter(t => ['ORDERED', 'QUOTING', 'LOGISTICS_APPROVED'].includes(t.status)).length, icon: <Truck className="w-4 h-4" />, color: "text-emerald-600" },
   ];
 
   return (
@@ -51,14 +52,14 @@ export default function IhracatciPage() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold text-slate-900 tracking-tight">İhracatçı Paneli</h1>
-          <p className="text-slate-500 mt-1">Mikro-ihracat taleplerinizi yönetin ve lojistik havuzunu takip edin.</p>
+          <p className="text-slate-500 mt-1">Ürün ilanlarınızı yönetin ve sipariş durumlarını takip edin.</p>
         </div>
         <Link 
           href="/ihracatci/yeni"
           className="flex items-center gap-2 px-6 py-3 bg-slate-900 text-white rounded-2xl font-bold hover:bg-slate-800 transition-all shadow-lg shadow-slate-200 active:scale-95"
         >
           <Plus className="w-5 h-5" />
-          Yeni Mikro-Talep Aç
+          Yeni Ürün İlanı Oluştur
         </Link>
       </div>
 

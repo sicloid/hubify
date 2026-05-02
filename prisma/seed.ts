@@ -1,4 +1,4 @@
-import { PrismaClient, TradeStatus, UserRole, DocumentType } from '@prisma/client';
+import { PrismaClient, TradeStatus, UserRole, DocumentType, PaymentStatus } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
@@ -11,6 +11,7 @@ async function main() {
   const users = [
     { email: 'admin@hubify.test', fullName: 'Sistem Yöneticisi', role: UserRole.ADMIN },
     { email: 'ihracatci@hubify.test', fullName: 'Ayşe İhracat', role: UserRole.EXPORTER },
+    { email: 'alici@hubify.test', fullName: 'Mehmet Alıcı', role: UserRole.BUYER },
     { email: 'lojistik@hubify.test', fullName: 'Bora Lojistik', role: UserRole.LOGISTICS },
     { email: 'icc-uzmani@hubify.test', fullName: 'Hakan Uzman', role: UserRole.ICC_EXPERT },
     { email: 'mali-musavir@hubify.test', fullName: 'Cemal Müşavir', role: UserRole.FINANCIAL_ADV },
@@ -36,53 +37,136 @@ async function main() {
   }
 
   const exporter = await prisma.user.findUnique({ where: { email: 'ihracatci@hubify.test' } });
+  const buyer = await prisma.user.findUnique({ where: { email: 'alici@hubify.test' } });
   const logistics = await prisma.user.findUnique({ where: { email: 'lojistik@hubify.test' } });
   const iccExpert = await prisma.user.findUnique({ where: { email: 'icc-uzmani@hubify.test' } });
   const financialAdv = await prisma.user.findUnique({ where: { email: 'mali-musavir@hubify.test' } });
   const insurer = await prisma.user.findUnique({ where: { email: 'sigorta@hubify.test' } });
 
-  if (!exporter || !logistics || !iccExpert || !financialAdv || !insurer) {
+  if (!exporter || !buyer || !logistics || !iccExpert || !financialAdv || !insurer) {
     throw new Error('Temel rol kullanıcıları bulunamadı.');
   }
 
-  const baseRequests = [
+  // Sipariş alınmış ürünler (buyer atanmış, pipeline'a girmiş, fiyatlı)
+  const orderedRequests = [
     {
       referenceNumber: 'HZ-2026-001',
       title: 'Berlin Tekstil Mikro-Ihracat',
       description: 'Konsolide tekstil urunleri sevkiyati',
       status: TradeStatus.LOGISTICS_APPROVED,
+      buyerId: buyer.id,
+      unitPrice: 8.50,
+      totalPrice: 2125.00,
+      currency: 'EUR',
+      paymentStatus: PaymentStatus.ESCROW_HELD,
+      destinationCity: 'Berlin, DE',
+      weight: 250,
     },
     {
       referenceNumber: 'HZ-2026-002',
       title: 'Rotterdam Deri Aksesuar',
       description: 'Belgeleri kismen yuklenmis dosya',
       status: TradeStatus.DOCUMENTS_PENDING,
+      buyerId: buyer.id,
+      unitPrice: 22.00,
+      totalPrice: 3300.00,
+      currency: 'EUR',
+      paymentStatus: PaymentStatus.ESCROW_HELD,
+      destinationCity: 'Rotterdam, NL',
+      weight: 150,
     },
     {
       referenceNumber: 'HZ-2026-003',
       title: 'Hamburg Gida Numune Sevki',
       description: 'ICC onayi tamam, finans islemleri bekleniyor',
       status: TradeStatus.DOCUMENTS_APPROVED,
+      buyerId: buyer.id,
+      unitPrice: 15.00,
+      totalPrice: 1350.00,
+      currency: 'USD',
+      paymentStatus: PaymentStatus.RELEASED_TO_SELLER,
+      destinationCity: 'Hamburg, DE',
+      weight: 90,
     },
     {
       referenceNumber: 'HZ-2026-004',
       title: 'Paris Kozmetik Mini Parti',
       description: 'Lojistik onayi aldi, ICC belge yuklemesi bekliyor',
       status: TradeStatus.LOGISTICS_APPROVED,
+      buyerId: buyer.id,
+      unitPrice: 45.00,
+      totalPrice: 2700.00,
+      currency: 'EUR',
+      paymentStatus: PaymentStatus.ESCROW_HELD,
+      destinationCity: 'Paris, FR',
+      weight: 60,
     },
     {
       referenceNumber: 'HZ-2026-005',
       title: 'Madrid Endustriyel Yedek Parca',
       description: 'Konşimento yuklenmis, gumruk beyannamesi bekliyor',
       status: TradeStatus.DOCUMENTS_PENDING,
+      buyerId: buyer.id,
+      unitPrice: 32.00,
+      totalPrice: 6400.00,
+      currency: 'USD',
+      paymentStatus: PaymentStatus.AWAITING_PAYMENT,
+      destinationCity: 'Madrid, ES',
+      weight: 200,
     },
     {
       referenceNumber: 'HZ-2026-006',
       title: 'Varşova Medikal Sarf',
       description: 'Belgeler yuklu fakat ICC onayi alinmamis',
       status: TradeStatus.DOCUMENTS_PENDING,
-    }
+      buyerId: buyer.id,
+      unitPrice: 18.50,
+      totalPrice: 1480.00,
+      currency: 'USD',
+      paymentStatus: PaymentStatus.ESCROW_HELD,
+      destinationCity: 'Varşova, PL',
+      weight: 80,
+    },
   ];
+
+  // Alıcı bekleyen ürün ilanları (PENDING – pazaryerinde görünecek, fiyatlı)
+  const pendingListings = [
+    {
+      referenceNumber: 'HZ-2026-007',
+      title: 'Londra Seramik Sanat Eseri',
+      description: 'El yapımı seramik ürünler, 30 adet',
+      status: TradeStatus.PENDING,
+      weight: 120,
+      unitPrice: 28.00,
+      totalPrice: 3360.00,
+      currency: 'GBP',
+      destinationCity: 'Londra, UK',
+    },
+    {
+      referenceNumber: 'HZ-2026-008',
+      title: 'Dubai Organik Zeytinyağı',
+      description: 'Soğuk sıkım organik zeytinyağı, 500ml x 200 şişe',
+      status: TradeStatus.PENDING,
+      weight: 250,
+      unitPrice: 6.40,
+      totalPrice: 1600.00,
+      currency: 'USD',
+      destinationCity: 'Dubai, AE',
+    },
+    {
+      referenceNumber: 'HZ-2026-009',
+      title: 'Tokyo Baharat Koleksiyonu',
+      description: 'Antep pul biberi, kekik, sumak karma seti',
+      status: TradeStatus.PENDING,
+      weight: 80,
+      unitPrice: 14.00,
+      totalPrice: 1120.00,
+      currency: 'USD',
+      destinationCity: 'Tokyo, JP',
+    },
+  ];
+
+  const baseRequests = [...orderedRequests, ...pendingListings];
 
   for (const request of baseRequests) {
     const existing = await prisma.tradeRequest.findUnique({ where: { referenceNumber: request.referenceNumber } });
@@ -94,20 +178,29 @@ async function main() {
           title: request.title,
           description: request.description,
           status: request.status,
+          weight: (request as any).weight || Math.floor(Math.random() * 500 + 50),
+          unitPrice: (request as any).unitPrice || null,
+          totalPrice: (request as any).totalPrice || null,
+          currency: (request as any).currency || 'USD',
+          paymentStatus: (request as any).paymentStatus || null,
+          destinationCity: (request as any).destinationCity || null,
           exporterId: exporter.id,
-          quotes: {
-            create: {
-              price: '1250.00',
-              currency: 'USD',
-              estimatedDays: 7,
-              notes: 'Konsolide rota teklifidir.',
-              logisticsId: logistics.id,
-              isAccepted: true,
+          buyerId: (request as any).buyerId || null,
+          ...((request as any).buyerId ? {
+            quotes: {
+              create: {
+                price: '1250.00',
+                currency: 'USD',
+                estimatedDays: 7,
+                notes: 'Konsolide rota teklifidir.',
+                logisticsId: logistics.id,
+                isAccepted: true,
+              }
             }
-          }
+          } : {})
         }
       });
-      console.log(`Talep eklendi: ${request.referenceNumber}`);
+      console.log(`Talep eklendi: ${request.referenceNumber} (${request.status})`);
     } else {
       console.log(`Talep zaten var: ${request.referenceNumber}`);
     }

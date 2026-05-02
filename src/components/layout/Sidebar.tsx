@@ -32,6 +32,7 @@ export default function Sidebar({ session }: SidebarProps) {
   const roleRoutes: Record<string, string> = {
     ADMIN: "/admin",
     EXPORTER: "/ihracatci",
+    BUYER: "/pazaryeri",
     LOGISTICS: "/lojistik",
     ICC_EXPERT: "/icc-uzmani",
     FINANCIAL_ADV: "/mali-musavir",
@@ -41,6 +42,7 @@ export default function Sidebar({ session }: SidebarProps) {
   const roleNames: Record<string, string> = {
     ADMIN: "Yönetici Paneli",
     EXPORTER: "İhracatçı Paneli",
+    BUYER: "Alıcı Pazaryeri",
     LOGISTICS: "Lojistik Paneli",
     ICC_EXPERT: "ICC Uzmanı Paneli",
     FINANCIAL_ADV: "Mali Müşavir Paneli",

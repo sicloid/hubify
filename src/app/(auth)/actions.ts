@@ -36,6 +36,7 @@ export async function loginAction(prevState: any, formData: FormData) {
   const roleRoutes: Record<string, string> = {
     ADMIN: "/admin",
     EXPORTER: "/ihracatci",
+    BUYER: "/pazaryeri",
     LOGISTICS: "/lojistik",
     ICC_EXPERT: "/icc-uzmani",
     FINANCIAL_ADV: "/mali-musavir",
@@ -50,6 +51,7 @@ export async function registerAction(prevState: any, formData: FormData) {
   const email = formData.get("email")?.toString();
   const password = formData.get("password")?.toString();
   const fullName = formData.get("fullName")?.toString();
+  const selectedRole = formData.get("role")?.toString();
 
   if (!email || !password || !fullName) {
     return { error: "Tüm alanları doldurunuz." };
@@ -65,15 +67,15 @@ export async function registerAction(prevState: any, formData: FormData) {
 
   const passwordHash = await bcrypt.hash(password, 10);
 
-  // İlk kullanıcıyı otomatik ADMIN yapma mantığı eklenebilir veya varsayılan EXPORTER
   const isFirstUser = (await prisma.user.count()) === 0;
+  const role = isFirstUser ? "ADMIN" : (selectedRole === "EXPORTER" ? "EXPORTER" : "BUYER");
 
   const user = await prisma.user.create({
     data: {
       email,
       passwordHash,
       fullName,
-      role: isFirstUser ? "ADMIN" : "EXPORTER",
+      role,
     },
   });
 
@@ -84,5 +86,10 @@ export async function registerAction(prevState: any, formData: FormData) {
     fullName: user.fullName,
   });
 
-  redirect(isFirstUser ? "/admin" : "/ihracatci");
+  const targetRoutes: Record<string, string> = {
+    ADMIN: "/admin",
+    EXPORTER: "/ihracatci",
+    BUYER: "/pazaryeri",
+  };
+  redirect(targetRoutes[user.role] || "/pazaryeri");
 }

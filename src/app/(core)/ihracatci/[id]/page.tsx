@@ -21,7 +21,7 @@ const mapStatus = (status: TradeStatus): OperationStatus => {
 };
 
 const trackingSteps = [
-  { id: 'talep', label: 'Talep', statuses: [TradeStatus.PENDING, TradeStatus.REVIEWING] },
+  { id: 'talep', label: 'Talep', statuses: [TradeStatus.PENDING, TradeStatus.ORDERED] },
   { id: 'konsolidasyon', label: 'Konsolidasyon', statuses: [TradeStatus.QUOTING] },
   { id: 'yasal-onay', label: 'Yasal Onay', statuses: [TradeStatus.LOGISTICS_APPROVED, TradeStatus.DOCUMENTS_PENDING] },
   { id: 'finans', label: 'Finans', statuses: [TradeStatus.DOCUMENTS_APPROVED] },

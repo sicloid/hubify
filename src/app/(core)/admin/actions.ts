@@ -62,7 +62,7 @@ export async function getLiveRadarStats() {
   try {
     const [pending, reviewing, docsPending, inTransit] = await Promise.all([
       prisma.tradeRequest.count({ where: { status: TradeStatus.PENDING } }),
-      prisma.tradeRequest.count({ where: { status: { in: [TradeStatus.REVIEWING, TradeStatus.QUOTING] } } }),
+      prisma.tradeRequest.count({ where: { status: { in: [TradeStatus.ORDERED, TradeStatus.QUOTING] } } }),
       prisma.tradeRequest.count({ where: { status: { in: [TradeStatus.DOCUMENTS_PENDING, TradeStatus.LOGISTICS_APPROVED] } } }),
       prisma.tradeRequest.count({ where: { status: TradeStatus.IN_TRANSIT } }),
     ]);

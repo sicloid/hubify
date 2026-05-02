@@ -1,9 +1,10 @@
 "use server";
 
-import { DocumentType, TradeStatus, UserRole } from "@prisma/client";
+import { DocumentType, TradeStatus, UserRole, PaymentStatus } from "@prisma/client";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/prisma";
+import { serializeDecimal } from "@/lib/serialize";
 import { requireRole } from "@/lib/auth-utils";
 import { uploadFileToS3 } from "@/lib/s3-upload";
 
@@ -21,6 +22,9 @@ const getCachedIccRequests = unstable_cache(
       },
       include: {
         exporter: {
+          select: { fullName: true }
+        },
+        buyer: {
           select: { fullName: true }
         },
         quotes: {
@@ -41,13 +45,7 @@ const getCachedIccRequests = unstable_cache(
       }
     });
 
-    return requests.map(request => ({
-      ...request,
-      quotes: request.quotes.map(q => ({
-        ...q,
-        price: Number(q.price)
-      }))
-    }));
+    return requests.map(request => serializeDecimal(request));
   },
   ['icc-requests'],
   { tags: ['trade-requests'], revalidate: 30 }
@@ -164,4 +162,71 @@ export async function finalizeIccReview(tradeRequestId: string) {
   revalidatePath("/mali-musavir");
   revalidatePath("/sigorta");
   revalidateTag('trade-requests', { expire: 0 });
+}
+
+// ICC Escrow: Ödemeyi satıcıya aktar
+export async function releaseEscrow(tradeRequestId: string) {
+  await requireIccUser();
+
+  try {
+    const request = await prisma.tradeRequest.findUnique({
+      where: { id: tradeRequestId }
+    });
+
+    if (!request) {
+      return { success: false, error: "Talep bulunamadı." };
+    }
+
+    if (request.paymentStatus !== PaymentStatus.ESCROW_HELD) {
+      return { success: false, error: "Ödeme escrow'da değil, aktarım yapılamaz." };
+    }
+
+    await prisma.tradeRequest.update({
+      where: { id: tradeRequestId },
+      data: {
+        paymentStatus: PaymentStatus.RELEASED_TO_SELLER,
+      }
+    });
+
+    revalidatePath("/icc-uzmani");
+    revalidatePath("/ihracatci");
+    revalidatePath("/pazaryeri");
+    revalidateTag('trade-requests', { expire: 0 });
+    return { success: true };
+  } catch (error) {
+    console.error("Escrow aktarma hatası:", error);
+    return { success: false, error: "Aktarma başarısız." };
+  }
+}
+
+// ICC Escrow: İade et
+export async function refundEscrow(tradeRequestId: string) {
+  await requireIccUser();
+
+  try {
+    const request = await prisma.tradeRequest.findUnique({
+      where: { id: tradeRequestId }
+    });
+
+    if (!request || request.paymentStatus !== PaymentStatus.ESCROW_HELD) {
+      return { success: false, error: "İade yapılacak ödeme bulunamadı." };
+    }
+
+    await prisma.tradeRequest.update({
+      where: { id: tradeRequestId },
+      data: {
+        paymentStatus: PaymentStatus.REFUNDED,
+        status: TradeStatus.CANCELLED,
+      }
+    });
+
+    revalidatePath("/icc-uzmani");
+    revalidatePath("/ihracatci");
+    revalidatePath("/pazaryeri");
+    revalidateTag('trade-requests', { expire: 0 });
+    return { success: true };
+  } catch (error) {
+    console.error("İade hatası:", error);
+    return { success: false, error: "İade başarısız." };
+  }
 }
