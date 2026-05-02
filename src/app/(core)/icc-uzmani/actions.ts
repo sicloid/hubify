@@ -7,7 +7,72 @@ import { requireRole } from "@/lib/auth-utils";
 import { uploadFileToS3 } from "@/lib/s3-upload";
 
 async function requireIccUser() {
-  return requireRole([UserRole.ICC_EXPERT]);
+  return requireRole([UserRole.ICC_EXPERT, UserRole.ADMIN]);
+}
+
+export async function getIccRequests() {
+  await requireIccUser();
+  
+  try {
+    const requests = await prisma.tradeRequest.findMany({
+      where: {
+        status: {
+          in: [TradeStatus.LOGISTICS_APPROVED, TradeStatus.DOCUMENTS_PENDING, TradeStatus.DOCUMENTS_APPROVED]
+        }
+      },
+      include: {
+        exporter: {
+          select: { fullName: true }
+        },
+        quotes: {
+          where: { isAccepted: true },
+          include: {
+            logistics: {
+              select: { fullName: true }
+            }
+          }
+        },
+        documents: true,
+        _count: {
+          select: { documents: true }
+        }
+      },
+      orderBy: {
+        updatedAt: 'desc'
+      }
+    });
+
+    return requests.map(request => ({
+      ...request,
+      quotes: request.quotes.map(q => ({
+        ...q,
+        price: Number(q.price)
+      }))
+    }));
+  } catch (error) {
+    console.error("ICC talepleri çekilirken hata:", error);
+    return [];
+  }
+}
+
+export async function approveDocuments(tradeRequestId: string) {
+  await requireIccUser();
+  
+  try {
+    await prisma.tradeRequest.update({
+      where: { id: tradeRequestId },
+      data: { status: TradeStatus.DOCUMENTS_APPROVED }
+    });
+    
+    revalidatePath("/icc-uzmani");
+    revalidatePath("/mali-musavir");
+    revalidatePath("/sigorta");
+    revalidatePath(`/ihracatci/${tradeRequestId}`);
+    return { success: true };
+  } catch (error) {
+    console.error("Belge onaylama hatası:", error);
+    return { success: false };
+  }
 }
 
 export async function uploadComplianceDocument(tradeRequestId: string, docType: DocumentType, formData: FormData) {

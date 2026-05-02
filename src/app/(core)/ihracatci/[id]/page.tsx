@@ -21,11 +21,12 @@ const mapStatus = (status: TradeStatus): OperationStatus => {
 };
 
 const trackingSteps = [
-  { id: 'onay-bekliyor', label: 'Onay Bekliyor', statuses: [TradeStatus.PENDING, TradeStatus.REVIEWING] },
-  { id: 'onaylandi', label: 'Onaylandı', statuses: [TradeStatus.QUOTING] },
-  { id: 'yukleniyor', label: 'Konteyner\'a Yükleniyor', statuses: [TradeStatus.LOGISTICS_APPROVED, TradeStatus.DOCUMENTS_PENDING] },
-  { id: 'yola-cikti', label: 'Yola Çıktı', statuses: [TradeStatus.DOCUMENTS_APPROVED, TradeStatus.IN_TRANSIT] },
-  { id: 'teslim-edildi', label: 'Teslim Edildi', statuses: [TradeStatus.COMPLETED] },
+  { id: 'talep', label: 'Talep', statuses: [TradeStatus.PENDING, TradeStatus.REVIEWING] },
+  { id: 'konsolidasyon', label: 'Konsolidasyon', statuses: [TradeStatus.QUOTING] },
+  { id: 'yasal-onay', label: 'Yasal Onay', statuses: [TradeStatus.LOGISTICS_APPROVED, TradeStatus.DOCUMENTS_PENDING] },
+  { id: 'finans', label: 'Finans', statuses: [TradeStatus.DOCUMENTS_APPROVED] },
+  { id: 'guvence', label: 'Güvence & Sevkiyat', statuses: [TradeStatus.IN_TRANSIT] },
+  { id: 'tamamlandi', label: 'Teslim Edildi', statuses: [TradeStatus.COMPLETED] },
 ];
 
 export default function ExporterTalepDetayPage({ params: paramsPromise }: { params: Promise<{ id: string }> }) {
@@ -69,10 +70,11 @@ export default function ExporterTalepDetayPage({ params: paramsPromise }: { para
     switch (talep.status) {
       case 'PENDING': return { location: 'Beklemede', eta: 'Henüz Belirlenmedi', desc: 'Talebiniz sisteme alındı, lojistikçiler inceliyor.' };
       case 'QUOTING': return { location: 'Lojistik Havuzu', eta: 'Teklif Bekleniyor', desc: 'Lojistik firmalarından teklifler toplanıyor.' };
-      case 'LOGISTICS_APPROVED': return { location: 'İstanbul Çıkış Terminali', eta: '5-7 Gün', desc: 'Yükünüz konteyner havuzuna fiziksel olarak dahil ediliyor.' };
-      case 'IN_TRANSIT': return { location: 'Bulgaristan / Sofya Sınırı', eta: '2-3 Gün', desc: 'Gümrük onayları tamamlandı, yük yola çıktı.' };
-      case 'COMPLETED': return { location: 'Berlin Dağıtım Merkezi', eta: 'Teslim Edildi', desc: 'Paket alıcıya ulaştırıldı.' };
-      default: return { location: 'Süreç İşleniyor', eta: 'Hesaplanıyor...', desc: 'Yasal süreçler ve belgeler ICC uzmanı tarafından denetleniyor.' };
+      case 'LOGISTICS_APPROVED': return { location: 'ICC Denetim Merkezi', eta: '6-8 Gün', desc: 'Lojistik onaylandı. ICC Uzmanı gümrük yasalarına uygunluğu denetliyor.' };
+      case 'DOCUMENTS_APPROVED': return { location: 'Mali Müşavirlik', eta: '4-5 Gün', desc: 'Yasal onay verildi. Mali Müşavir e-fatura ve KDV iade süreçlerini yönetiyor.' };
+      case 'IN_TRANSIT': return { location: 'Sınır Geçişi / Sigorta Aktif', eta: '1-2 Gün', desc: 'Finansal süreçler tamamlandı, sigorta poliçesi eklendi ve yük yola çıktı.' };
+      case 'COMPLETED': return { location: 'Varış Noktası', eta: 'Teslim Edildi', desc: 'Paket alıcıya başarıyla ulaştırıldı.' };
+      default: return { location: 'İşlem Merkezi', eta: 'Hesaplanıyor...', desc: 'Süreciniz Hubify Pipeline üzerinde ilerliyor.' };
     }
   };
 
@@ -280,22 +282,44 @@ export default function ExporterTalepDetayPage({ params: paramsPromise }: { para
           </div>
 
           <AnimatePresence>
-            {acceptedQuote && (
+            {acceptedQuote && talep.status === 'LOGISTICS_APPROVED' && (
               <motion.div 
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="bg-indigo-50 border border-indigo-100 rounded-3xl p-6 shadow-xl shadow-indigo-100/50"
+              >
+                <h3 className="font-bold text-indigo-900 mb-3 flex items-center gap-2">
+                  <CheckCircle2 className="w-5 h-5 text-indigo-600" />
+                  Sıradaki Adım: Yasal Onay
+                </h3>
+                <p className="text-xs text-indigo-800 leading-relaxed">
+                  Lojistik teklifini onayladınız. Şimdi <strong>ICC Uzmanı</strong> belgelerinizi gümrük kurallarına göre denetleyip dijital mühür basacaktır.
+                </p>
+                <div className="mt-4 flex items-center gap-2 text-[10px] font-bold text-indigo-600 uppercase tracking-wider">
+                  <div className="w-2 h-2 bg-indigo-500 rounded-full animate-ping" />
+                  ICC Uzmanı Bekleniyor...
+                </div>
+              </motion.div>
+            )}
+
+            {talep.status === 'DOCUMENTS_APPROVED' && (
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95 }}
                 className="bg-emerald-50 border border-emerald-100 rounded-3xl p-6 shadow-xl shadow-emerald-100/50"
               >
                 <h3 className="font-bold text-emerald-900 mb-3 flex items-center gap-2">
                   <CheckCircle2 className="w-5 h-5 text-emerald-600" />
-                  Sıradaki Adım: Yasal Onay
+                  Sıradaki Adım: Finansal Onay
                 </h3>
                 <p className="text-xs text-emerald-800 leading-relaxed">
-                  Lojistik teklifini onayladınız. Şimdi <strong>ICC Uzmanı</strong> belgelerinizi gümrük kurallarına göre denetleyecek ve onay verecektir.
+                  Gümrük onayları tamamlandı. Şimdi <strong>Mali Müşavir</strong> e-fatura ve KDV iade süreçlerini sisteme işleyecektir.
                 </p>
                 <div className="mt-4 flex items-center gap-2 text-[10px] font-bold text-emerald-600 uppercase tracking-wider">
                   <div className="w-2 h-2 bg-emerald-500 rounded-full animate-ping" />
-                  Uzman Bekleniyor...
+                  Mali Müşavir Bekleniyor...
                 </div>
               </motion.div>
             )}
