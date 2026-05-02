@@ -3,19 +3,20 @@
 import Link from "next/link";
 import { UserRole } from "@prisma/client";
 import { usePathname } from "next/navigation";
-import { 
-  LayoutDashboard, 
-  Users, 
-  FileText, 
-  Truck, 
-  Package, 
-  ShieldCheck, 
-  Landmark, 
-  ShieldAlert,
+import {
+  LayoutDashboard,
+  Users,
+  FileText,
+  Truck,
+  Package,
+  ShieldCheck,
+  Landmark,
   ChevronRight,
   BarChart,
   Settings,
-  Files
+  Files,
+  ClipboardList,
+  CheckCircle2,
 } from "lucide-react";
 import { AuthSession } from "@/lib/auth-utils";
 import { motion } from "framer-motion";
@@ -36,7 +37,7 @@ export default function Sidebar({ session }: SidebarProps) {
     LOGISTICS: "/lojistik",
     ICC_EXPERT: "/icc-uzmani",
     FINANCIAL_ADV: "/mali-musavir",
-    INSURER: "/sigorta",
+    INSURER: "/sigorta/bekleyen",
   };
 
   const roleNames: Record<string, string> = {
@@ -54,6 +55,16 @@ export default function Sidebar({ session }: SidebarProps) {
 
   const isMainActive = pathname === mainRoute;
   const isAdminUsersActive = pathname === "/admin";
+  const reportsHref =
+    role === "ICC_EXPERT" ? "/icc-uzmani/raporlar" : 
+    role === "INSURER" ? "/sigorta/raporlar" : 
+    role === "FINANCIAL_ADV" ? "/mali-musavir/raporlar" : 
+    "#raporlar";
+    
+  const reportsActive =
+    (role === "ICC_EXPERT" && pathname === "/icc-uzmani/raporlar") ||
+    (role === "INSURER" && pathname === "/sigorta/raporlar") ||
+    (role === "FINANCIAL_ADV" && pathname === "/mali-musavir/raporlar");
 
   return (
     <motion.aside 
@@ -78,29 +89,85 @@ export default function Sidebar({ session }: SidebarProps) {
 
       <nav className="flex-1 py-6 px-4 space-y-1 overflow-y-auto">
         <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3 px-3">
-          Ana Ekran
+          {role === "INSURER" ? "Sigorta" : "Ana Ekran"}
         </div>
 
-        <Link href={mainRoute} className="block relative mb-6">
-          {isMainActive && (
-            <motion.div 
-              layoutId="activeTab"
-              className="absolute inset-0 bg-brand-primary/20 border border-brand-primary/30 rounded-xl"
-              initial={false}
-              transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            />
-          )}
-          <motion.div 
-            whileHover={{ x: 5 }}
-            className={`flex items-center justify-between px-3 py-2.5 rounded-xl relative z-10 transition-colors ${isMainActive ? 'text-white' : 'text-slate-400 hover:text-slate-200'}`}
-          >
-            <div className="flex items-center gap-3">
-              <LayoutDashboard className={`h-5 w-5 ${isMainActive ? 'text-brand-secondary' : 'text-slate-500'}`} />
-              <span className="text-sm font-medium">{mainName}</span>
-            </div>
-            {isMainActive && <ChevronRight className="w-4 h-4 text-brand-secondary opacity-50" />}
-          </motion.div>
-        </Link>
+        {role === "INSURER" ? (
+          <div className="relative mb-6 space-y-1">
+            {[
+              {
+                href: "/sigorta/bekleyen",
+                label: "Poliçe bekleyen",
+                sublabel: "Poliçe sırasında bekleyen dosyalar",
+                icon: ClipboardList,
+              },
+              {
+                href: "/sigorta/yolda",
+                label: "Yolda sigortalı yük",
+                sublabel: "Canlı sevkiyat kartları",
+                icon: Truck,
+              },
+              {
+                href: "/sigorta/tamamlanan",
+                label: "Tamamlanan sigortalı sevkiyat",
+                sublabel: "Arşiv ve poliçe bağlantıları",
+                icon: CheckCircle2,
+              },
+            ].map((item) => {
+              const isActive = pathname === item.href;
+              return (
+                <Link key={item.href} href={item.href} className="block relative">
+                  {isActive && (
+                    <motion.div
+                      layoutId="activeTab"
+                      className="absolute inset-0 bg-brand-primary/20 border border-brand-primary/30 rounded-xl"
+                      initial={false}
+                      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                    />
+                  )}
+                  <motion.div
+                    whileHover={{ x: 5 }}
+                    className={`relative z-10 flex items-start justify-between gap-2 px-3 py-2.5 rounded-xl transition-colors ${
+                      isActive ? "text-white" : "text-slate-400 hover:bg-white/5 hover:text-slate-200"
+                    }`}
+                  >
+                    <div className="flex items-start gap-3 min-w-0">
+                      <item.icon className={`h-5 w-5 shrink-0 mt-0.5 ${isActive ? "text-brand-secondary" : "text-slate-500"}`} aria-hidden />
+                      <span className="min-w-0">
+                        <span className="block text-sm font-medium leading-snug">{item.label}</span>
+                        <span className={`mt-1 block text-[10px] font-medium leading-snug uppercase tracking-wide ${isActive ? "text-slate-200/85" : "text-slate-500"}`}>
+                          {item.sublabel}
+                        </span>
+                      </span>
+                    </div>
+                    {isActive && <ChevronRight className="w-4 h-4 shrink-0 text-brand-secondary opacity-60 mt-0.5" />}
+                  </motion.div>
+                </Link>
+              );
+            })}
+          </div>
+        ) : (
+          <Link href={mainRoute} className="block relative mb-6">
+            {isMainActive && (
+              <motion.div
+                layoutId="activeTab"
+                className="absolute inset-0 bg-brand-primary/20 border border-brand-primary/30 rounded-xl"
+                initial={false}
+                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              />
+            )}
+            <motion.div
+              whileHover={{ x: 5 }}
+              className={`flex items-center justify-between px-3 py-2.5 rounded-xl relative z-10 transition-colors ${isMainActive ? "text-white" : "text-slate-400 hover:text-slate-200"}`}
+            >
+              <div className="flex items-center gap-3">
+                <LayoutDashboard className={`h-5 w-5 ${isMainActive ? "text-brand-secondary" : "text-slate-500"}`} />
+                <span className="text-sm font-medium">{mainName}</span>
+              </div>
+              {isMainActive && <ChevronRight className="w-4 h-4 text-brand-secondary opacity-50" />}
+            </motion.div>
+          </Link>
+        )}
 
         {role === "ICC_EXPERT" ? (
           <>
@@ -142,7 +209,7 @@ export default function Sidebar({ session }: SidebarProps) {
               </Link>
             ))}
           </>
-        ) : (
+        ) : role === "INSURER" || role === "FINANCIAL_ADV" ? null : (
           <>
             <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3 px-3 mt-6">
               Modüller
@@ -191,8 +258,8 @@ export default function Sidebar({ session }: SidebarProps) {
           Sistem
         </div>
 
-        <Link href={role === "ICC_EXPERT" ? "/icc-uzmani/raporlar" : "#raporlar"} className="block relative group">
-          {role === "ICC_EXPERT" && pathname === "/icc-uzmani/raporlar" && (
+        <Link href={reportsHref} className="block relative group">
+          {reportsActive && (
             <motion.div
               layoutId="activeTab"
               className="absolute inset-0 bg-brand-primary/20 border border-brand-primary/30 rounded-xl"
@@ -203,17 +270,11 @@ export default function Sidebar({ session }: SidebarProps) {
           <motion.div
             whileHover={{ x: 5 }}
             className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all relative z-10 ${
-              role === "ICC_EXPERT" && pathname === "/icc-uzmani/raporlar"
-                ? "text-white"
-                : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
+              reportsActive ? "text-white" : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
             }`}
           >
             <BarChart
-              className={`h-5 w-5 ${
-                role === "ICC_EXPERT" && pathname === "/icc-uzmani/raporlar"
-                  ? "text-brand-secondary"
-                  : "text-slate-500 group-hover:text-slate-300"
-              }`}
+              className={`h-5 w-5 ${reportsActive ? "text-brand-secondary" : "text-slate-500 group-hover:text-slate-300"}`}
             />
             <span className="text-sm font-medium">Raporlar & Analiz</span>
           </motion.div>

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { DocumentType, TradeStatus, UserRole } from "@prisma/client";
 import { BadgeCheck, FileText, Landmark } from "lucide-react";
 import { prisma } from "@/lib/prisma";
@@ -68,53 +69,89 @@ export default async function FinancialAdvPage() {
               (doc) => doc.type === DocumentType.OTHER && doc.name.toLowerCase().includes("kdv"),
             );
 
-            return (
-              <section key={request.id} className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm hover:shadow-xl transition-all">
-                <div className="mb-6">
+          return (
+            <section key={request.id} className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm hover:shadow-xl transition-all">
+              <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
+                <div>
                   <h2 className="text-xl font-black text-slate-900">{request.referenceNumber}</h2>
                   <p className="text-xs font-bold text-slate-400 uppercase tracking-tight">İhracatçı: {request.exporter.fullName}</p>
                 </div>
+                <Link
+                  href={`/mali-musavir/${request.id}`}
+                  className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-xs font-black uppercase tracking-widest text-white hover:bg-slate-800 transition-colors"
+                >
+                  <FileText className="h-4 w-4" />
+                  Detayları İncele
+                </Link>
+              </div>
 
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <div className="rounded-2xl border border-slate-100 bg-slate-50/50 p-5">
-                    <p className="mb-4 text-xs font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
-                      <FileText className="h-4 w-4 text-sky-600" />
-                      E-Fatura Süreci
-                    </p>
-                    {invoiceDoc ? (
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="px-3 py-1 bg-emerald-50 text-emerald-600 rounded-lg text-[10px] font-black uppercase">Hazır</span>
-                        <a href={invoiceDoc.fileUrl} target="_blank" className="text-[10px] font-black text-sky-600 uppercase hover:underline">Görüntüle</a>
-                        <FileUploadButton action={uploadInvoice.bind(null, request.id)} buttonLabel="Güncelle" buttonClassName="text-[10px] font-black text-slate-400 uppercase hover:text-slate-600" />
-                      </div>
-                    ) : (
-                      <FileUploadButton action={uploadInvoice.bind(null, request.id)} buttonLabel="E-Fatura Oluştur" buttonClassName="w-full py-2.5 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-800" />
-                    )}
-                  </div>
-
-                  <div className="rounded-2xl border border-slate-100 bg-slate-50/50 p-5">
-                    <p className="mb-4 text-xs font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
-                      <Landmark className="h-4 w-4 text-emerald-600" />
-                      KDV İade Dosyası
-                    </p>
-                    {vatDoc ? (
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="px-3 py-1 bg-emerald-50 text-emerald-600 rounded-lg text-[10px] font-black uppercase">Tamamlandı</span>
-                        <a href={vatDoc.fileUrl} target="_blank" className="text-[10px] font-black text-sky-600 uppercase hover:underline">Görüntüle</a>
-                        <FileUploadButton action={uploadVatReport.bind(null, request.id)} buttonLabel="Güncelle" buttonClassName="text-[10px] font-black text-slate-400 uppercase hover:text-slate-600" />
-                      </div>
-                    ) : (
-                      <FileUploadButton action={uploadVatReport.bind(null, request.id)} buttonLabel="KDV İşlemini Başlat" buttonClassName="w-full py-2.5 bg-emerald-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-700" />
-                    )}
-                  </div>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div className="rounded-2xl border border-slate-100 bg-slate-50/50 p-5">
+                  <p className="mb-4 text-xs font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-sky-600" />
+                    E-Fatura Süreci
+                  </p>
+                  {invoiceDoc ? (
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="px-3 py-1 bg-emerald-50 text-emerald-600 rounded-lg text-[10px] font-black uppercase">Hazır</span>
+                      <a href={invoiceDoc?.fileUrl ?? "#"} target="_blank" className="text-[10px] font-black text-sky-600 uppercase hover:underline">Görüntüle</a>
+                      <FileUploadButton 
+                        action={async (formData: FormData) => {
+                          "use server";
+                          await uploadInvoice(request.id, formData);
+                        }} 
+                        buttonLabel="Güncelle" 
+                        buttonClassName="text-[10px] font-black text-slate-400 uppercase hover:text-slate-600" 
+                      />
+                    </div>
+                  ) : (
+                    <FileUploadButton 
+                      action={async (formData: FormData) => {
+                        "use server";
+                        await uploadInvoice(request.id, formData);
+                      }} 
+                      buttonLabel="E-Fatura Oluştur" 
+                      buttonClassName="w-full py-2.5 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-800" 
+                    />
+                  )}
                 </div>
-              </section>
-            );
-          })}
-          {queue.length === 0 && (
-            <div className="p-12 border-2 border-dashed border-slate-200 rounded-3xl text-center text-slate-400 font-bold uppercase tracking-widest text-xs">Bekleyen işlem bulunmuyor</div>
-          )}
-        </div>
+
+                <div className="rounded-2xl border border-slate-100 bg-slate-50/50 p-5">
+                  <p className="mb-4 text-xs font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
+                    <Landmark className="h-4 w-4 text-emerald-600" />
+                    KDV İade Dosyası
+                  </p>
+                  {vatDoc ? (
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="px-3 py-1 bg-emerald-50 text-emerald-600 rounded-lg text-[10px] font-black uppercase">Tamamlandı</span>
+                      <a href={vatDoc?.fileUrl ?? "#"} target="_blank" className="text-[10px] font-black text-sky-600 uppercase hover:underline">Görüntüle</a>
+                      <FileUploadButton 
+                        action={async (formData: FormData) => {
+                          "use server";
+                          await uploadVatReport(request.id, formData);
+                        }} 
+                        buttonLabel="Güncelle" 
+                        buttonClassName="text-[10px] font-black text-slate-400 uppercase hover:text-slate-600" 
+                      />
+                    </div>
+                  ) : (
+                    <FileUploadButton 
+                      action={async (formData: FormData) => {
+                        "use server";
+                        await uploadVatReport(request.id, formData);
+                      }} 
+                      buttonLabel="KDV İşlemini Başlat" 
+                      buttonClassName="w-full py-2.5 bg-emerald-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-700" 
+                    />
+                  )}
+                </div>
+              </div>
+            </section>
+          );
+        })}
+        {queue.length === 0 && (
+          <div className="p-12 border-2 border-dashed border-slate-200 rounded-3xl text-center text-slate-400 font-bold uppercase tracking-widest text-xs">Bekleyen işlem bulunmuyor</div>
+        )}
       </div>
 
       {/* Completed History */}
@@ -133,6 +170,7 @@ export default async function FinancialAdvPage() {
                 <div>
                   <p className="font-black text-slate-900">{request.referenceNumber}</p>
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">İhracatçı: {request.exporter.fullName} • {request.status}</p>
+                </div>
                 </div>
               </div>
               <div className="text-right">

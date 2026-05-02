@@ -40,7 +40,7 @@ export async function issuePolicyAndDispatch(tradeRequestId: string, formData: F
     data: { status: TradeStatus.IN_TRANSIT },
   });
 
-  revalidatePath("/sigorta");
+  revalidatePath("/sigorta", "layout");
 }
 
 export async function markShipmentCompleted(tradeRequestId: string) {
@@ -52,5 +52,5 @@ export async function markShipmentCompleted(tradeRequestId: string) {
     data: { status: TradeStatus.COMPLETED },
   });
 
-  revalidatePath("/sigorta");
+  revalidatePath("/sigorta", "layout");
 }
