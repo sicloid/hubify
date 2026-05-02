@@ -3,11 +3,12 @@
 import { useActionState, useState, useRef } from "react";
 import { loginAction } from "../actions";
 import Link from "next/link";
-import { ArrowRight, Mail, Lock, Box, Globe, ShieldCheck, User, Truck, FileCheck, Landmark, Shield } from "lucide-react";
+import { ArrowRight, Mail, Lock, Box, Globe, ShieldCheck, User, Truck, FileCheck, Landmark, Shield, ShoppingCart } from "lucide-react";
 import { motion } from "framer-motion";
 
 const DEMO_ACCOUNTS = [
   { role: "İhracatçı", email: "ihracatci@hubify.test", icon: User, color: "text-blue-500", bg: "bg-blue-100" },
+  { role: "Alıcı", email: "alici@hubify.test", icon: ShoppingCart, color: "text-teal-500", bg: "bg-teal-100" },
   { role: "Lojistik", email: "lojistik@hubify.test", icon: Truck, color: "text-emerald-500", bg: "bg-emerald-100" },
   { role: "ICC Uzmanı", email: "icc-uzmani@hubify.test", icon: FileCheck, color: "text-purple-500", bg: "bg-purple-100" },
   { role: "Mali Müşavir", email: "mali-musavir@hubify.test", icon: Landmark, color: "text-amber-500", bg: "bg-amber-100" },
