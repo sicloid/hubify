@@ -27,6 +27,12 @@ interface SidebarProps {
 export default function Sidebar({ session }: SidebarProps) {
   const { role } = session;
   const pathname = usePathname();
+  const profileRouteByRole: Partial<Record<UserRole, string>> = {
+    ICC_EXPERT: "/icc-uzmani/profil",
+    FINANCIAL_ADV: "/mali-musavir/profil",
+    INSURER: "/sigorta/profil",
+  };
+  const profileRoute = profileRouteByRole[role];
 
   const roleRoutes: Record<string, string> = {
     ADMIN: "/admin",
@@ -99,33 +105,93 @@ export default function Sidebar({ session }: SidebarProps) {
           </motion.div>
         </Link>
 
-        <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3 px-3 mt-6">
-          Modüller
-        </div>
-
-        {[
-          { name: "Taleplerim", icon: FileText, route: "#talepler" },
-          { name: "Kargo & Lojistik", icon: Truck, route: "#lojistik" },
-          { name: "Gümrük Belgeleri", icon: Files, route: "#belgeler" },
-          { name: "Fatura & Finans", icon: Landmark, route: "#finans" },
-        ].map((item, idx) => (
-          <Link key={idx} href={item.route} className="block group">
-            <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:text-slate-200 hover:bg-white/5 transition-all">
-              <item.icon className="h-5 w-5 text-slate-500 group-hover:text-slate-300" />
-              <span className="text-sm font-medium">{item.name}</span>
+        {role === "ICC_EXPERT" ? (
+          <>
+            <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3 px-3 mt-6">
+              Modüller
             </div>
-          </Link>
-        ))}
+            <Link href="/icc-uzmani/onaylananlar" className="block relative mt-2">
+              {pathname === "/icc-uzmani/onaylananlar" && (
+                <motion.div
+                  layoutId="activeTab"
+                  className="absolute inset-0 bg-brand-primary/20 border border-brand-primary/30 rounded-xl"
+                  initial={false}
+                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                />
+              )}
+              <motion.div
+                whileHover={{ x: 5 }}
+                className={`flex items-center justify-between px-3 py-2.5 rounded-xl relative z-10 transition-colors ${
+                  pathname === "/icc-uzmani/onaylananlar"
+                    ? "text-white"
+                    : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <Files
+                    className={`h-5 w-5 ${
+                      pathname === "/icc-uzmani/onaylananlar" ? "text-brand-secondary" : "text-slate-500"
+                    }`}
+                  />
+                  <span className="text-sm font-medium">Onaylanan Belgeler</span>
+                </div>
+                {pathname === "/icc-uzmani/onaylananlar" && (
+                  <ChevronRight className="w-4 h-4 text-brand-secondary opacity-50" />
+                )}
+              </motion.div>
+            </Link>
+          </>
+        ) : (
+          <>
+            <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3 px-3 mt-6">
+              Modüller
+            </div>
+            {[
+              { name: "Taleplerim", icon: FileText, route: "#talepler" },
+              { name: "Kargo & Lojistik", icon: Truck, route: "#lojistik" },
+              { name: "Gümrük Belgeleri", icon: Files, route: "#belgeler" },
+              { name: "Fatura & Finans", icon: Landmark, route: "#finans" },
+            ].map((item, idx) => (
+              <Link key={idx} href={item.route} className="block group">
+                <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:text-slate-200 hover:bg-white/5 transition-all">
+                  <item.icon className="h-5 w-5 text-slate-500 group-hover:text-slate-300" />
+                  <span className="text-sm font-medium">{item.name}</span>
+                </div>
+              </Link>
+            ))}
+          </>
+        )}
 
         <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3 px-3 mt-8">
           Sistem
         </div>
 
-        <Link href="#raporlar" className="block group">
-          <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:text-slate-200 hover:bg-white/5 transition-all">
-            <BarChart className="h-5 w-5 text-slate-500 group-hover:text-slate-300" />
+        <Link href={role === "ICC_EXPERT" ? "/icc-uzmani/raporlar" : "#raporlar"} className="block relative group">
+          {role === "ICC_EXPERT" && pathname === "/icc-uzmani/raporlar" && (
+            <motion.div
+              layoutId="activeTab"
+              className="absolute inset-0 bg-brand-primary/20 border border-brand-primary/30 rounded-xl"
+              initial={false}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            />
+          )}
+          <motion.div
+            whileHover={{ x: 5 }}
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all relative z-10 ${
+              role === "ICC_EXPERT" && pathname === "/icc-uzmani/raporlar"
+                ? "text-white"
+                : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
+            }`}
+          >
+            <BarChart
+              className={`h-5 w-5 ${
+                role === "ICC_EXPERT" && pathname === "/icc-uzmani/raporlar"
+                  ? "text-brand-secondary"
+                  : "text-slate-500 group-hover:text-slate-300"
+              }`}
+            />
             <span className="text-sm font-medium">Raporlar & Analiz</span>
-          </div>
+          </motion.div>
         </Link>
 
         {role === "ADMIN" && (
@@ -151,11 +217,32 @@ export default function Sidebar({ session }: SidebarProps) {
           </Link>
         )}
 
-        <Link href="#ayarlar" className="block group">
-          <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:text-slate-200 hover:bg-white/5 transition-all">
-            <Settings className="h-5 w-5 text-slate-500 group-hover:text-slate-300" />
-            <span className="text-sm font-medium">Sistem Ayarları</span>
-          </div>
+        <Link href={profileRoute ?? "#ayarlar"} className="block relative group">
+          {profileRoute && pathname === profileRoute && (
+            <motion.div
+              layoutId="activeTab"
+              className="absolute inset-0 bg-brand-primary/20 border border-brand-primary/30 rounded-xl"
+              initial={false}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            />
+          )}
+          <motion.div
+            whileHover={{ x: 5 }}
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all relative z-10 ${
+              profileRoute && pathname === profileRoute
+                ? "text-white"
+                : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
+            }`}
+          >
+            <Settings
+              className={`h-5 w-5 ${
+                profileRoute && pathname === profileRoute
+                  ? "text-brand-secondary"
+                  : "text-slate-500 group-hover:text-slate-300"
+              }`}
+            />
+            <span className="text-sm font-medium">Profil Ayarı</span>
+          </motion.div>
         </Link>
       </nav>
 

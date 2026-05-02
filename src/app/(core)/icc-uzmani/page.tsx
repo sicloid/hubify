@@ -1,6 +1,7 @@
 import { DocumentType, TradeStatus, UserRole } from "@prisma/client";
 import {
   CheckCheck,
+  Eye,
   FileCheck2,
   FilePlus2,
   FileWarning,
@@ -11,12 +12,14 @@ import {
   Stamp,
   Timer,
 } from "lucide-react";
+import Link from "next/link";
 import { requireRole } from "@/lib/auth-utils";
 import { prisma } from "@/lib/prisma";
 import { finalizeIccReview, toggleDocumentApproval, uploadComplianceDocument } from "./actions";
 import { type ComponentType } from "react";
 import FileUploadButton from "@/components/forms/FileUploadButton";
 import FinalizeStampButton from "@/components/icc/FinalizeStampButton";
+import DocumentApprovalButton from "@/components/icc/DocumentApprovalButton";
 
 const requiredTypes = [DocumentType.BILL_OF_LADING, DocumentType.CUSTOMS_DECLARATION];
 
@@ -40,6 +43,12 @@ export default async function ICCExpertPage() {
     include: {
       exporter: { select: { fullName: true } },
       documents: true,
+      quotes: {
+        include: {
+          logistics: { select: { fullName: true } },
+        },
+        orderBy: { createdAt: "desc" },
+      },
     },
     orderBy: { createdAt: "asc" },
   });
@@ -77,6 +86,12 @@ export default async function ICCExpertPage() {
                 Akilli Uyum Kontrolu
               </span>
             </div>
+            <Link
+              href="/icc-uzmani/onaylananlar"
+              className="inline-flex items-center rounded-lg bg-white/10 px-3 py-1.5 text-xs font-semibold text-white hover:bg-white/20"
+            >
+              Onaylanan Belgeleri Goruntule
+            </Link>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -113,11 +128,26 @@ export default async function ICCExpertPage() {
                   <p className="text-sm text-slate-500">
                     Ihracatci: {request.exporter.fullName} • Durum: {request.status}
                   </p>
+                  {request.quotes[0] && (
+                    <p className="mt-1 text-xs text-slate-500">
+                      Teklif: {request.quotes[0].price.toString()} {request.quotes[0].currency} •{" "}
+                      {request.quotes[0].estimatedDays} gun • {request.quotes[0].logistics.fullName}
+                    </p>
+                  )}
                 </div>
-                <FinalizeStampButton
-                  action={finalizeIccReview.bind(null, request.id)}
-                  disabled={!readyForFinalApproval}
-                />
+                <div className="flex flex-wrap items-center gap-2">
+                  <Link
+                    href={`/icc-uzmani/${request.referenceNumber}`}
+                    className="inline-flex items-center gap-1 rounded-xl bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-200"
+                  >
+                    <Eye className="h-3.5 w-3.5" />
+                    Teklif Detayi
+                  </Link>
+                  <FinalizeStampButton
+                    action={finalizeIccReview.bind(null, request.id)}
+                    disabled={!readyForFinalApproval}
+                  />
+                </div>
               </div>
 
               <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
@@ -168,18 +198,11 @@ export default async function ICCExpertPage() {
                             buttonLabel="Belgeyi Degistir"
                             buttonClassName="rounded-lg bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-200"
                           />
-                          <form action={toggleDocumentApproval.bind(null, existingDoc.id, !existingDoc.isApproved)}>
-                            <button
-                              type="submit"
-                              className={`rounded-lg px-3 py-2 text-xs font-semibold transition-all hover:scale-[1.02] ${
-                                existingDoc.isApproved
-                                  ? "bg-amber-100 text-amber-700 hover:bg-amber-200"
-                                  : "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
-                              }`}
-                            >
-                              {existingDoc.isApproved ? "Onayi Geri Al" : "Belgeyi Onayla"}
-                            </button>
-                          </form>
+                          <DocumentApprovalButton
+                            documentId={existingDoc.id}
+                            initialApproved={existingDoc.isApproved}
+                            action={toggleDocumentApproval}
+                          />
                         </div>
                       )}
                     </div>
