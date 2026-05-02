@@ -84,12 +84,14 @@ export default function Header({ session }: { session?: AuthSession | null }) {
       </div>
 
       <div className="flex items-center gap-3 sm:gap-5">
-        <button 
-          onClick={() => setIsSupportOpen(true)}
-          className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-lg text-sm font-bold transition-colors border border-rose-100"
-        >
-          <LifeBuoy className="w-4 h-4" /> Destek / Hata Bildir
-        </button>
+        {session?.role !== 'ADMIN' && (
+          <button 
+            onClick={() => setIsSupportOpen(true)}
+            className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-lg text-sm font-bold transition-colors border border-rose-100"
+          >
+            <LifeBuoy className="w-4 h-4" /> Destek / Hata Bildir
+          </button>
+        )}
 
         <button className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-lg transition-colors relative">
           <Bell className="h-5 w-5" />
