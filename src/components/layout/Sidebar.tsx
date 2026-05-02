@@ -107,36 +107,40 @@ export default function Sidebar({ session }: SidebarProps) {
             <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3 px-3 mt-6">
               Modüller
             </div>
-            <Link href="/icc-uzmani/onaylananlar" className="block relative mt-2">
-              {pathname === "/icc-uzmani/onaylananlar" && (
-                <motion.div
-                  layoutId="activeTab"
-                  className="absolute inset-0 bg-brand-primary/20 border border-brand-primary/30 rounded-xl"
-                  initial={false}
-                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                />
-              )}
-              <motion.div
-                whileHover={{ x: 5 }}
-                className={`flex items-center justify-between px-3 py-2.5 rounded-xl relative z-10 transition-colors ${
-                  pathname === "/icc-uzmani/onaylananlar"
-                    ? "text-white"
-                    : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <Files
-                    className={`h-5 w-5 ${
-                      pathname === "/icc-uzmani/onaylananlar" ? "text-brand-secondary" : "text-slate-500"
-                    }`}
+            {[
+              { name: "Taleplerim", icon: FileText, route: "/taleplerim" },
+            ].map((item, idx) => (
+              <Link key={idx} href={item.route} className="block relative mt-2">
+                {pathname === item.route && (
+                  <motion.div
+                    layoutId="activeTab"
+                    className="absolute inset-0 bg-brand-primary/20 border border-brand-primary/30 rounded-xl"
+                    initial={false}
+                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
                   />
-                  <span className="text-sm font-medium">Onaylanan Belgeler</span>
-                </div>
-                {pathname === "/icc-uzmani/onaylananlar" && (
-                  <ChevronRight className="w-4 h-4 text-brand-secondary opacity-50" />
                 )}
-              </motion.div>
-            </Link>
+                <motion.div
+                  whileHover={{ x: 5 }}
+                  className={`flex items-center justify-between px-3 py-2.5 rounded-xl relative z-10 transition-colors ${
+                    pathname === item.route
+                      ? "text-white"
+                      : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <item.icon
+                      className={`h-5 w-5 ${
+                        pathname === item.route ? "text-brand-secondary" : "text-slate-500"
+                      }`}
+                    />
+                    <span className="text-sm font-medium">{item.name}</span>
+                  </div>
+                  {pathname === item.route && (
+                    <ChevronRight className="w-4 h-4 text-brand-secondary opacity-50" />
+                  )}
+                </motion.div>
+              </Link>
+            ))}
           </>
         ) : (
           <>
@@ -144,16 +148,40 @@ export default function Sidebar({ session }: SidebarProps) {
               Modüller
             </div>
             {[
-              { name: "Taleplerim", icon: FileText, route: "#talepler" },
+              { name: "Taleplerim", icon: FileText, route: "/taleplerim" },
               { name: "Kargo & Lojistik", icon: Truck, route: "#lojistik" },
               { name: "Gümrük Belgeleri", icon: Files, route: "#belgeler" },
               { name: "Fatura & Finans", icon: Landmark, route: "#finans" },
             ].map((item, idx) => (
-              <Link key={idx} href={item.route} className="block group">
-                <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:text-slate-200 hover:bg-white/5 transition-all">
-                  <item.icon className="h-5 w-5 text-slate-500 group-hover:text-slate-300" />
-                  <span className="text-sm font-medium">{item.name}</span>
-                </div>
+              <Link key={idx} href={item.route} className="block relative mt-2">
+                {pathname === item.route && (
+                  <motion.div
+                    layoutId="activeTab"
+                    className="absolute inset-0 bg-brand-primary/20 border border-brand-primary/30 rounded-xl"
+                    initial={false}
+                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                  />
+                )}
+                <motion.div
+                  whileHover={{ x: 5 }}
+                  className={`flex items-center justify-between px-3 py-2.5 rounded-xl relative z-10 transition-colors ${
+                    pathname === item.route
+                      ? "text-white"
+                      : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <item.icon
+                      className={`h-5 w-5 ${
+                        pathname === item.route ? "text-brand-secondary" : "text-slate-500"
+                      }`}
+                    />
+                    <span className="text-sm font-medium">{item.name}</span>
+                  </div>
+                  {pathname === item.route && (
+                    <ChevronRight className="w-4 h-4 text-brand-secondary opacity-50" />
+                  )}
+                </motion.div>
               </Link>
             ))}
           </>

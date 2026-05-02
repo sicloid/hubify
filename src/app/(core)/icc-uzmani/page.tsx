@@ -53,175 +53,165 @@ export default async function ICCExpertPage() {
     orderBy: { createdAt: "asc" },
   });
 
-  const approvedCount = queue.filter((item) => item.status === TradeStatus.DOCUMENTS_APPROVED).length;
+  const completedQueue = await prisma.tradeRequest.findMany({
+    where: {
+      status: {
+        in: [TradeStatus.DOCUMENTS_APPROVED, TradeStatus.IN_TRANSIT, TradeStatus.COMPLETED],
+      },
+    },
+    include: {
+      exporter: { select: { fullName: true } },
+      documents: true,
+    },
+    orderBy: { updatedAt: "desc" },
+    take: 10,
+  });
+
+  const approvedCount = completedQueue.length;
 
   return (
-    <div className="space-y-6">
-      <section className="relative overflow-hidden rounded-3xl border border-slate-200 bg-slate-900 p-6 text-white shadow-xl">
+    <div className="space-y-10">
+      <section className="relative overflow-hidden rounded-3xl border border-slate-200 bg-slate-900 p-8 text-white shadow-xl">
         <div className="pointer-events-none absolute inset-0">
           <div className="absolute -left-24 -top-20 h-64 w-64 rounded-full bg-sky-500/20 blur-3xl animate-pulse" />
           <div className="absolute -right-20 -bottom-24 h-72 w-72 rounded-full bg-emerald-500/20 blur-3xl animate-pulse" />
-          <div className="absolute left-1/2 top-1/2 h-48 w-48 -translate-x-1/2 -translate-y-1/2 rounded-full border border-sky-400/20" />
-          <div className="absolute left-1/2 top-1/2 h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full border border-emerald-400/15" />
         </div>
 
-        <div className="relative z-10 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div className="space-y-2">
-            <p className="inline-flex items-center gap-2 rounded-full border border-sky-400/40 bg-sky-400/15 px-3 py-1 text-xs font-semibold text-sky-200">
+        <div className="relative z-10 flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+          <div className="space-y-3">
+            <p className="inline-flex items-center gap-2 rounded-full border border-sky-400/40 bg-sky-400/15 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-sky-200">
               <PackageCheck className="h-3.5 w-3.5" />
-              Konsolide Yukler - ICC Uyum Masasi
+              ICC Uyum Masasi
             </p>
-            <h1 className="text-2xl font-bold tracking-tight md:text-3xl">Gumruk Belge Onay Akisi</h1>
-            <p className="max-w-2xl text-sm text-slate-300">
-              Lojistik onayi alan dosyalarda gumruk belgelerini yukleyip onaylayin. Zincir tamamlaninca dosya mali
-              musavir asamasina devredilir.
+            <h1 className="text-3xl font-black tracking-tighter md:text-4xl">Belge Onay Merkezi</h1>
+            <p className="max-w-xl text-sm text-slate-300 font-medium">
+              Lojistik onayı alan dosyalarda gümrük belgelerini inceleyip onaylayın. Onaylanan dosyalar otomatik olarak finans aşamasına aktarılır.
             </p>
-            <div className="flex flex-wrap gap-2 pt-1 text-xs">
-              <span className="inline-flex items-center gap-1 rounded-full bg-slate-800/80 px-3 py-1 text-slate-200 border border-slate-700">
-                <Radar className="h-3.5 w-3.5 text-sky-300" />
-                Live ICC Radar
-              </span>
-              <span className="inline-flex items-center gap-1 rounded-full bg-slate-800/80 px-3 py-1 text-slate-200 border border-slate-700">
-                <Sparkles className="h-3.5 w-3.5 text-emerald-300" />
-                Akilli Uyum Kontrolu
-              </span>
-            </div>
-            <Link
-              href="/icc-uzmani/onaylananlar"
-              className="inline-flex items-center rounded-lg bg-white/10 px-3 py-1.5 text-xs font-semibold text-white hover:bg-white/20"
-            >
-              Onaylanan Belgeleri Goruntule
-            </Link>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <MetricBadge label="Bekleyen Islem" value={`${queue.length}`} icon={Timer} />
-            <MetricBadge label="Onaylanan Akis" value={`${approvedCount}`} icon={CheckCheck} />
+          <div className="grid grid-cols-2 gap-4">
+            <MetricBadge label="İşlem Bekleyen" value={`${queue.length}`} icon={Timer} />
+            <MetricBadge label="Tamamlanan" value={`${approvedCount}`} icon={CheckCheck} />
           </div>
         </div>
       </section>
 
-      <div className="grid grid-cols-1 gap-4">
-        {queue.map((request) => {
-          const hasApprovedBillOfLading = request.documents.some(
-            (doc) => doc.type === DocumentType.BILL_OF_LADING && doc.isApproved,
-          );
-          const hasApprovedCustoms = request.documents.some(
-            (doc) => doc.type === DocumentType.CUSTOMS_DECLARATION && doc.isApproved,
-          );
-          const readyForFinalApproval = hasApprovedBillOfLading && hasApprovedCustoms;
+      {/* Active Queue */}
+      <div className="space-y-4">
+        <h2 className="text-xl font-black text-slate-900 flex items-center gap-2 px-1">
+          <Stamp className="w-5 h-5 text-sky-600" />
+          Aktif İnceleme Kuyruğu
+        </h2>
+        <div className="grid grid-cols-1 gap-4">
+          {queue.map((request) => {
+            const hasApprovedBillOfLading = request.documents.some(
+              (doc) => doc.type === DocumentType.BILL_OF_LADING && doc.isApproved,
+            );
+            const hasApprovedCustoms = request.documents.some(
+              (doc) => doc.type === DocumentType.CUSTOMS_DECLARATION && doc.isApproved,
+            );
+            const readyForFinalApproval = hasApprovedBillOfLading && hasApprovedCustoms;
 
-          return (
-            <section
-              key={request.id}
-              className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:shadow-md hover:border-slate-300"
-            >
-              <div className="mb-4 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-                <div>
-                  <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                    <span className="relative flex h-2.5 w-2.5">
-                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-sky-400 opacity-75" />
-                      <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-sky-500" />
-                    </span>
-                    {request.referenceNumber}
-                  </h2>
-                  <p className="text-sm text-slate-500">
-                    Ihracatci: {request.exporter.fullName} • Durum: {request.status}
-                  </p>
-                  {request.quotes[0] && (
-                    <p className="mt-1 text-xs text-slate-500">
-                      Teklif: {request.quotes[0].price.toString()} {request.quotes[0].currency} •{" "}
-                      {request.quotes[0].estimatedDays} gun • {request.quotes[0].logistics.fullName}
+            return (
+              <section
+                key={request.id}
+                className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition-all hover:shadow-xl hover:shadow-slate-200/50 group"
+              >
+                <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h2 className="text-xl font-black text-slate-900 tracking-tight">{request.referenceNumber}</h2>
+                      <span className="px-2 py-0.5 bg-sky-50 text-sky-600 rounded-lg text-[10px] font-black uppercase tracking-tighter">İnceleniyor</span>
+                    </div>
+                    <p className="text-xs font-bold text-slate-400 uppercase mt-1 tracking-tight">
+                      İhracatçı: {request.exporter.fullName} • Oluşturulma: {new Date(request.createdAt).toLocaleDateString('tr-TR')}
                     </p>
-                  )}
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <FinalizeStampButton
+                      action={finalizeIccReview.bind(null, request.id)}
+                      disabled={!readyForFinalApproval}
+                    />
+                  </div>
                 </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <Link
-                    href={`/icc-uzmani/${request.referenceNumber}`}
-                    className="inline-flex items-center gap-1 rounded-xl bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-200"
-                  >
-                    <Eye className="h-3.5 w-3.5" />
-                    Teklif Detayi
-                  </Link>
-                  <FinalizeStampButton
-                    action={finalizeIccReview.bind(null, request.id)}
-                    disabled={!readyForFinalApproval}
-                  />
-                </div>
-              </div>
 
-              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                {requiredTypes.map((docType) => {
-                  const existingDoc = request.documents.find((doc) => doc.type === docType);
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  {requiredTypes.map((docType) => {
+                    const existingDoc = request.documents.find((doc) => doc.type === docType);
 
-                  return (
-                    <div
-                      key={docType}
-                      className="rounded-xl border border-slate-200 p-4 transition-all hover:border-slate-300 hover:bg-slate-50/60"
-                    >
-                      <div className="mb-3 flex items-center justify-between">
-                        <p className="text-sm font-semibold text-slate-800">{documentLabels[docType]}</p>
-                        {existingDoc?.isApproved ? (
-                          <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700">
-                            <FileCheck2 className="h-3.5 w-3.5" />
-                            Onayli
-                          </span>
+                    return (
+                      <div
+                        key={docType}
+                        className="rounded-2xl border border-slate-100 bg-slate-50/50 p-5 transition-all hover:bg-white hover:border-sky-100"
+                      >
+                        <div className="mb-4 flex items-center justify-between">
+                          <p className="text-xs font-black text-slate-900 uppercase tracking-widest">{documentLabels[docType]}</p>
+                          {existingDoc?.isApproved ? (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-tighter text-emerald-600">
+                              <FileCheck2 className="h-3.5 w-3.5" />
+                              Onaylandı
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-tighter text-amber-500">
+                              <FileWarning className="h-3.5 w-3.5" />
+                              İmza Bekliyor
+                            </span>
+                          )}
+                        </div>
+
+                        {!existingDoc ? (
+                          <div className="flex flex-col gap-3">
+                            <p className="text-xs text-slate-400 font-medium">Bu belge henüz yüklenmedi.</p>
+                            <FileUploadButton
+                              action={uploadComplianceDocument.bind(null, request.id, docType)}
+                              buttonLabel="Belgeyi Yükle"
+                              buttonClassName="w-fit rounded-xl bg-slate-900 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-white hover:bg-slate-800 transition-all"
+                            />
+                          </div>
                         ) : (
-                          <span className="inline-flex items-center gap-1 text-xs font-semibold text-amber-700">
-                            <FileWarning className="h-3.5 w-3.5" />
-                            Bekliyor
-                          </span>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <a
+                              href={existingDoc.fileUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="rounded-xl bg-white border border-slate-200 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-slate-600 hover:bg-slate-50"
+                            >
+                              Görüntüle
+                            </a>
+                            <FileUploadButton
+                              action={uploadComplianceDocument.bind(null, request.id, docType)}
+                              buttonLabel="Güncelle"
+                              buttonClassName="rounded-xl bg-white border border-slate-200 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-slate-600 hover:bg-slate-50"
+                            />
+                            <DocumentApprovalButton
+                              documentId={existingDoc.id}
+                              initialApproved={existingDoc.isApproved}
+                              action={toggleDocumentApproval}
+                            />
+                          </div>
                         )}
                       </div>
+                    );
+                  })}
+                </div>
+              </section>
+            );
+          })}
 
-                      {!existingDoc ? (
-                        <div className="inline-flex items-center gap-2">
-                          <FilePlus2 className="h-3.5 w-3.5 text-slate-500" />
-                          <FileUploadButton
-                            action={uploadComplianceDocument.bind(null, request.id, docType)}
-                            buttonLabel="Belgeyi Yukle"
-                            buttonClassName="rounded-lg bg-slate-900 px-3 py-2 text-xs font-semibold text-white hover:bg-slate-800"
-                          />
-                        </div>
-                      ) : (
-                        <div className="flex flex-wrap items-center gap-2">
-                          <a
-                            href={existingDoc.fileUrl}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="rounded-lg bg-sky-50 px-3 py-2 text-xs font-semibold text-sky-700 hover:bg-sky-100"
-                          >
-                            Belgeyi Goruntule
-                          </a>
-                          <FileUploadButton
-                            action={uploadComplianceDocument.bind(null, request.id, docType)}
-                            buttonLabel="Belgeyi Degistir"
-                            buttonClassName="rounded-lg bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-200"
-                          />
-                          <DocumentApprovalButton
-                            documentId={existingDoc.id}
-                            initialApproved={existingDoc.isApproved}
-                            action={toggleDocumentApproval}
-                          />
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </section>
-          );
-        })}
-
-        {queue.length === 0 && (
-          <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center text-slate-500">
-            ICC incelemesi bekleyen dosya bulunmuyor.
-          </div>
-        )}
+          {queue.length === 0 && (
+            <div className="rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50/50 p-12 text-center">
+              <PackageCheck className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+              <p className="text-lg font-black text-slate-400">Aktif İşlem Yok</p>
+              <p className="text-sm text-slate-400">İnceleme bekleyen yeni bir dosya bulunmuyor.</p>
+            </div>
+          )}
+        </div>
       </div>
+
     </div>
   );
 }
+
 
 function MetricBadge({
   label,

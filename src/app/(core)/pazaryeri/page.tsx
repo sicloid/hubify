@@ -153,14 +153,24 @@ export default function PazaryeriPage() {
                     transition={{ delay: i * 0.05 }}
                     className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all group"
                   >
-                    {/* Product header with price */}
-                    <div className="bg-gradient-to-r from-slate-50 to-slate-100 p-6 relative">
-                      <Package className="w-16 h-16 text-slate-300 mx-auto group-hover:scale-110 transition-transform" />
-                      <div className="absolute top-3 right-3 bg-white rounded-lg px-2 py-1 text-xs font-bold text-slate-600 shadow-sm">
+                    {/* Product header with image or placeholder */}
+                    <div className="bg-gradient-to-r from-slate-50 to-slate-100 aspect-video relative overflow-hidden">
+                      {p.productImage ? (
+                        <img 
+                          src={p.productImage} 
+                          alt={p.title} 
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Package className="w-16 h-16 text-slate-300 group-hover:scale-110 transition-transform" />
+                        </div>
+                      )}
+                      <div className="absolute top-3 right-3 bg-white/90 backdrop-blur rounded-lg px-2 py-1 text-[10px] font-black text-slate-600 shadow-sm uppercase tracking-tighter">
                         {p.weight} kg
                       </div>
                       {p.destinationCity && (
-                        <div className="absolute top-3 left-3 bg-white rounded-lg px-2 py-1 text-xs font-medium text-slate-500 shadow-sm flex items-center gap-1">
+                        <div className="absolute top-3 left-3 bg-brand-secondary/90 backdrop-blur rounded-lg px-2 py-1 text-[10px] font-black text-white shadow-sm flex items-center gap-1 uppercase tracking-tighter">
                           <MapPin className="w-3 h-3" /> {p.destinationCity}
                         </div>
                       )}
@@ -223,18 +233,29 @@ export default function PazaryeriPage() {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: i * 0.05 }}
-                    className="bg-white border border-slate-200 rounded-2xl p-5 flex items-center justify-between gap-4"
+                    className="bg-white border border-slate-200 rounded-3xl p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 hover:shadow-xl hover:shadow-slate-200/50 transition-all group"
                   >
-                    <div className="flex items-center gap-4 flex-1">
-                      <div className="bg-slate-100 rounded-xl p-3">
-                        <Package className="w-6 h-6 text-slate-500" />
+                    <div className="flex items-center gap-6 flex-1">
+                      <div className="w-20 h-20 bg-slate-100 rounded-2xl flex items-center justify-center overflow-hidden shrink-0 shadow-inner">
+                        {o.productImage ? (
+                          <img src={o.productImage} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                        ) : (
+                          <Package className="w-8 h-8 text-slate-300" />
+                        )}
                       </div>
-                      <div className="flex-1">
-                        <p className="font-bold text-slate-900">{o.title}</p>
-                        <div className="flex items-center gap-3 mt-1 text-xs text-slate-400">
-                          <span>{o.referenceNumber}</span>
-                          <span>{o.weight} kg</span>
-                          <span>{o.exporter.fullName}</span>
+                      <div className="flex-1 space-y-1">
+                        <div className="flex items-center gap-2">
+                          <p className="font-black text-slate-900 text-lg">{o.title}</p>
+                          {o.paymentStatus === 'ESCROW_HELD' && (
+                            <div className="flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-600 rounded-full text-[10px] font-black uppercase tracking-tighter">
+                              <Shield className="w-3 h-3" /> Güvende
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-400 font-bold uppercase tracking-tight">
+                          <span className="text-brand-secondary">{o.referenceNumber}</span>
+                          <span className="flex items-center gap-1"><User className="w-3 h-3" /> {o.exporter.fullName}</span>
+                          <span className="flex items-center gap-1"><Package className="w-3 h-3" /> {o.weight} kg</span>
                           {o.destinationCity && (
                             <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{o.destinationCity}</span>
                           )}
@@ -242,42 +263,43 @@ export default function PazaryeriPage() {
                       </div>
                     </div>
 
-                    {/* Price */}
-                    <div className="text-right mr-4">
-                      <p className="text-lg font-bold text-slate-900">
-                        {formatPrice(o.totalPrice, o.currency)}
-                      </p>
-                      {o.unitPrice !== null && (
-                        <p className="text-xs text-slate-400">{formatPrice(o.unitPrice, o.currency)}/kg</p>
-                      )}
-                    </div>
+                    <div className="flex flex-col md:items-end gap-3 w-full md:w-auto border-t md:border-t-0 pt-4 md:pt-0 border-slate-50">
+                      <div className="flex items-baseline gap-2">
+                        <p className="text-2xl font-black text-slate-900">
+                          {formatPrice(o.totalPrice, o.currency)}
+                        </p>
+                        {o.unitPrice !== null && (
+                          <p className="text-[10px] font-bold text-slate-400 uppercase">{formatPrice(o.unitPrice, o.currency)}/kg</p>
+                        )}
+                      </div>
 
-                    {/* Payment Status + Action */}
-                    <div className="flex items-center gap-3">
-                      {o.paymentStatus && paymentStatusLabels[o.paymentStatus] ? (
-                        <span className={`px-3 py-1.5 rounded-lg text-xs font-bold ${paymentStatusLabels[o.paymentStatus].color}`}>
-                          {paymentStatusLabels[o.paymentStatus].label}
-                        </span>
-                      ) : (
-                        <span className="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-500">
-                          {o.status}
-                        </span>
-                      )}
+                      <div className="flex items-center gap-3">
+                        {o.paymentStatus && paymentStatusLabels[o.paymentStatus] ? (
+                          <div className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 ${paymentStatusLabels[o.paymentStatus].color}`}>
+                            {o.paymentStatus === 'ESCROW_HELD' ? <CheckCircle2 className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
+                            {paymentStatusLabels[o.paymentStatus].label}
+                          </div>
+                        ) : (
+                          <span className="px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest bg-slate-100 text-slate-500">
+                            {o.status}
+                          </span>
+                        )}
 
-                      {o.paymentStatus === 'AWAITING_PAYMENT' && (
-                        <button
-                          onClick={() => handlePayment(o.id)}
-                          disabled={payingOrderId === o.id}
-                          className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold hover:bg-emerald-700 transition-all disabled:opacity-50"
-                        >
-                          {payingOrderId === o.id ? (
-                            <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                          ) : (
-                            <CreditCard className="w-3 h-3" />
-                          )}
-                          Ödeme Yap
-                        </button>
-                      )}
+                        {o.paymentStatus === 'AWAITING_PAYMENT' && (
+                          <button
+                            onClick={() => handlePayment(o.id)}
+                            disabled={payingOrderId === o.id}
+                            className="flex items-center gap-2 px-6 py-2.5 bg-emerald-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-700 transition-all hover:scale-105 active:scale-95 shadow-lg shadow-emerald-200 disabled:opacity-50"
+                          >
+                            {payingOrderId === o.id ? (
+                              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                            ) : (
+                              <CreditCard className="w-4 h-4" />
+                            )}
+                            Ödeme Yap
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </motion.div>
                 ))}

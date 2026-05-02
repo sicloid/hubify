@@ -6,15 +6,35 @@ import { Decimal } from "@prisma/client/runtime/library";
  */
 export function serializeDecimal<T>(obj: T): T {
   if (obj === null || obj === undefined) return obj;
-  if (obj instanceof Decimal) return Number(obj) as unknown as T;
+
+  // Decimal tespiti (Prisma nesnesi veya ona benzeyen düz obje)
+  if (
+    obj instanceof Decimal || 
+    (typeof obj === "object" && ("d" in obj || "s" in obj) && ("toNumber" in obj || (obj as any).constructor?.name === "Decimal"))
+  ) {
+    try {
+      return Number(obj.toString()) as unknown as T;
+    } catch (e) {
+      return 0 as unknown as T;
+    }
+  }
+
+  // Date koruması
   if (obj instanceof Date) return obj;
-  if (Array.isArray(obj)) return obj.map(serializeDecimal) as unknown as T;
+
+  // Array işleme
+  if (Array.isArray(obj)) {
+    return obj.map(serializeDecimal) as unknown as T;
+  }
+
+  // Obje işleme (Sadece plain object olarak kopyala, fonksiyonları ve prototype'ı temizle)
   if (typeof obj === "object") {
-    const result: Record<string, unknown> = {};
-    for (const [key, value] of Object.entries(obj)) {
-      result[key] = serializeDecimal(value);
+    const result: any = {};
+    for (const key of Object.keys(obj as any)) {
+      result[key] = serializeDecimal((obj as any)[key]);
     }
     return result as T;
   }
+
   return obj;
 }

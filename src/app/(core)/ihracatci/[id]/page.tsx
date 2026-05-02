@@ -11,6 +11,7 @@ import { TradeStatus } from '@prisma/client';
 const mapStatus = (status: TradeStatus): OperationStatus => {
   switch (status) {
     case 'PENDING': return 'Beklemede';
+    case 'ORDERED': return 'Sipariş Verildi';
     case 'QUOTING': return 'Teklif Alındı';
     case 'LOGISTICS_APPROVED': return 'Lojistik Onaylandı';
     case 'DOCUMENTS_APPROVED': return 'Yolda';
@@ -68,7 +69,8 @@ export default function ExporterTalepDetayPage({ params: paramsPromise }: { para
   // Mock location and ETA based on status
   const getTrackingDetails = () => {
     switch (talep.status) {
-      case 'PENDING': return { location: 'Beklemede', eta: 'Henüz Belirlenmedi', desc: 'Talebiniz sisteme alındı, lojistikçiler inceliyor.' };
+      case 'PENDING': return { location: 'Pazaryeri', eta: 'Alıcı Bekleniyor', desc: 'İlanınız yayında, alıcının sipariş vermesi bekleniyor.' };
+      case 'ORDERED': return { location: 'Lojistik Havuzu', eta: 'Teklif Bekleniyor', desc: 'Alıcı sipariş verdi. Lojistikçiler teklif hazırlıyor.' };
       case 'QUOTING': return { location: 'Lojistik Havuzu', eta: 'Teklif Bekleniyor', desc: 'Lojistik firmalarından teklifler toplanıyor.' };
       case 'LOGISTICS_APPROVED': return { location: 'ICC Denetim Merkezi', eta: '6-8 Gün', desc: 'Lojistik onaylandı. ICC Uzmanı gümrük yasalarına uygunluğu denetliyor.' };
       case 'DOCUMENTS_APPROVED': return { location: 'Mali Müşavirlik', eta: '4-5 Gün', desc: 'Yasal onay verildi. Mali Müşavir e-fatura ve KDV iade süreçlerini yönetiyor.' };
