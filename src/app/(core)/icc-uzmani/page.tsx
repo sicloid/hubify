@@ -12,7 +12,7 @@ const mapStatus = (status: TradeStatus): OperationStatus => {
   switch (status) {
     case 'LOGISTICS_APPROVED': return 'Lojistik Onaylandı';
     case 'DOCUMENTS_PENDING': return 'Belge Bekliyor';
-    case 'DOCUMENTS_APPROVED': return 'Yola Çıktı';
+    case 'DOCUMENTS_APPROVED': return 'Yolda';
     default: return 'Beklemede';
   }
 };

@@ -9,6 +9,7 @@ export type OperationStatus =
   | 'Beklemede' 
   | 'Teklif Alındı' 
   | 'Lojistik Onaylandı' 
+  | 'Belge Bekliyor'
   | 'Yükleniyor'
   | 'Yolda'
   | 'Tamamlandı'
@@ -24,6 +25,7 @@ export function StatusBadge({ status, className }: StatusBadgeProps) {
     'Beklemede': 'bg-amber-50 text-amber-700 ring-amber-600/20',
     'Teklif Alındı': 'bg-sky-50 text-sky-700 ring-sky-600/20',
     'Lojistik Onaylandı': 'bg-emerald-50 text-emerald-700 ring-emerald-600/20',
+    'Belge Bekliyor': 'bg-fuchsia-50 text-fuchsia-700 ring-fuchsia-600/20',
     'Yükleniyor': 'bg-blue-50 text-blue-700 ring-blue-600/20',
     'Yolda': 'bg-indigo-50 text-indigo-700 ring-indigo-600/20',
     'Tamamlandı': 'bg-slate-50 text-slate-700 ring-slate-600/20',
