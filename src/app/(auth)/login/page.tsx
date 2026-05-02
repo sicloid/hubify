@@ -65,10 +65,11 @@ export default function LoginPage() {
         className="absolute -bottom-[20%] -right-[10%] w-[60%] h-[60%] bg-emerald-200/20 rounded-full blur-3xl pointer-events-none"
       />
 
-      <div className="flex flex-1 flex-col items-center justify-center p-4 z-10 w-full max-w-5xl mx-auto">
-        <div className="flex flex-col lg:flex-row gap-8 w-full items-center justify-center">
+      <div className="flex flex-1 flex-col items-center justify-center p-4 z-10 w-full max-w-6xl mx-auto">
+        <div className="flex flex-col lg:flex-row gap-12 w-full items-center justify-between">
           
-          {/* Main Login Form */}
+          {/* Left Column: Login & Demo */}
+          <div className="flex flex-col gap-6 w-full lg:w-[400px] shrink-0">
           <motion.div 
             variants={containerVariants}
             initial="hidden"
@@ -178,10 +179,10 @@ export default function LoginPage() {
 
           {/* Quick Demo Login Section */}
           <motion.div 
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
-            className="w-full max-w-sm p-6 bg-slate-900/5 backdrop-blur-md rounded-2xl border border-slate-200/50 flex flex-col gap-4 shadow-sm"
+            className="w-full p-6 bg-slate-900/5 backdrop-blur-md rounded-2xl border border-slate-200/50 flex flex-col gap-4 shadow-sm"
           >
             <div className="mb-2">
               <h3 className="text-lg font-bold text-slate-800">Jüri / Demo Girişi</h3>
@@ -208,6 +209,70 @@ export default function LoginPage() {
               })}
             </div>
           </motion.div>
+          </div>
+
+          {/* Right Column: Floating Feature Cards (Only visible on large screens) */}
+          <div className="hidden lg:flex flex-col flex-1 relative h-[600px] items-center justify-center">
+            
+            {/* Merkezdeki Büyük Küre/İkon */}
+            <motion.div
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: "spring", bounce: 0.5, duration: 1, delay: 0.2 }}
+              className="absolute z-0 w-64 h-64 bg-gradient-to-br from-brand-primary/10 to-brand-secondary/10 rounded-full blur-2xl"
+            />
+
+            {/* Paylaşımlı Lojistik Kartı */}
+            <motion.div
+              initial={{ opacity: 0, y: 50, x: -50 }}
+              animate={{ opacity: 1, y: [0, -10, 0], x: -100 }}
+              transition={{ opacity: { duration: 0.8, delay: 0.4 }, y: { repeat: Infinity, duration: 4, ease: "easeInOut" } }}
+              className="absolute z-10 p-5 bg-white/90 backdrop-blur-xl rounded-2xl shadow-xl shadow-emerald-500/10 border border-emerald-100 flex items-start gap-4 max-w-[280px]"
+            >
+              <div className="p-3 bg-emerald-100 rounded-xl">
+                <Truck className="w-6 h-6 text-emerald-600" />
+              </div>
+              <div>
+                <h4 className="font-bold text-slate-800 text-sm mb-1">Paylaşımlı Lojistik</h4>
+                <p className="text-xs text-slate-500 leading-relaxed">Konteynerleri ortak kullanarak nakliye masraflarını bölün.</p>
+              </div>
+            </motion.div>
+
+            {/* Tek Tıkla Gümrük Kartı */}
+            <motion.div
+              initial={{ opacity: 0, y: 50, x: 50 }}
+              animate={{ opacity: 1, y: [0, 15, 0], x: 80 }}
+              transition={{ opacity: { duration: 0.8, delay: 0.6 }, y: { repeat: Infinity, duration: 5, ease: "easeInOut", delay: 1 } }}
+              className="absolute z-20 p-5 bg-white/90 backdrop-blur-xl rounded-2xl shadow-xl shadow-purple-500/10 border border-purple-100 flex items-start gap-4 max-w-[280px]"
+              style={{ top: "10%" }}
+            >
+              <div className="p-3 bg-purple-100 rounded-xl">
+                <FileCheck className="w-6 h-6 text-purple-600" />
+              </div>
+              <div>
+                <h4 className="font-bold text-slate-800 text-sm mb-1">Tek Tıkla Gümrük</h4>
+                <p className="text-xs text-slate-500 leading-relaxed">ICC uzmanları tüm gümrük prosedürlerini sizin için halleder.</p>
+              </div>
+            </motion.div>
+
+            {/* Global Ticaret Ağı Kartı */}
+            <motion.div
+              initial={{ opacity: 0, y: 50, x: 0 }}
+              animate={{ opacity: 1, y: [0, -15, 0], x: 20 }}
+              transition={{ opacity: { duration: 0.8, delay: 0.8 }, y: { repeat: Infinity, duration: 6, ease: "easeInOut", delay: 2 } }}
+              className="absolute z-10 p-5 bg-white/90 backdrop-blur-xl rounded-2xl shadow-xl shadow-sky-500/10 border border-sky-100 flex items-start gap-4 max-w-[280px]"
+              style={{ bottom: "5%" }}
+            >
+              <div className="p-3 bg-sky-100 rounded-xl">
+                <Globe className="w-6 h-6 text-sky-600" />
+              </div>
+              <div>
+                <h4 className="font-bold text-slate-800 text-sm mb-1">Global Ticaret Ağı</h4>
+                <p className="text-xs text-slate-500 leading-relaxed">Küçük işletmenizi tüm dünyaya güvenle açın ve büyütün.</p>
+              </div>
+            </motion.div>
+
+          </div>
           
         </div>
       </div>
