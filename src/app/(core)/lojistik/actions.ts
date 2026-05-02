@@ -3,13 +3,12 @@
 import { prisma } from "@/lib/prisma";
 import { requireAuth, requireRole } from "@/lib/auth-utils";
 import { TradeStatus, UserRole } from "@prisma/client";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
+import { unstable_cache } from "next/cache";
 
-export async function getAvailableRequests() {
-  await requireRole([UserRole.LOGISTICS, UserRole.ADMIN, UserRole.EXPORTER]); // Exporter da havuzu görebilsin görsel amaçlı
-  
-  try {
-    return await prisma.tradeRequest.findMany({
+const getCachedAvailableRequests = unstable_cache(
+  async () => {
+    return prisma.tradeRequest.findMany({
       where: {
         status: {
           in: [TradeStatus.PENDING, TradeStatus.QUOTING]
@@ -27,6 +26,16 @@ export async function getAvailableRequests() {
         }
       }
     });
+  },
+  ['available-requests'],
+  { tags: ['trade-requests'], revalidate: 30 }
+);
+
+export async function getAvailableRequests() {
+  await requireRole([UserRole.LOGISTICS, UserRole.ADMIN, UserRole.EXPORTER]);
+  
+  try {
+    return await getCachedAvailableRequests();
   } catch (error) {
     console.error("Havuz verileri çekilirken hata:", error);
     return [];
@@ -93,6 +102,7 @@ export async function createQuote(data: {
     });
 
     revalidatePath("/lojistik");
+    revalidateTag('trade-requests', { expire: 0 });
     return { success: true };
   } catch (error) {
     console.error("Teklif hatası:", error);
@@ -110,6 +120,7 @@ export async function autoConsolidate() {
     });
     
     revalidatePath("/lojistik");
+    revalidateTag('trade-requests', { expire: 0 });
     return { success: true };
   } catch (error) {
     console.error("Otomatik konsolidasyon hatası:", error);
@@ -117,10 +128,8 @@ export async function autoConsolidate() {
   }
 }
 
-export async function getPoolStats() {
-  await requireAuth();
-  
-  try {
+const getCachedPoolStats = unstable_cache(
+  async () => {
     const poolRequests = await prisma.tradeRequest.findMany({
       where: { 
         status: {
@@ -138,20 +147,24 @@ export async function getPoolStats() {
       capacity,
       occupancyRate: Math.min(Math.round((totalWeight / capacity) * 100), 100)
     };
+  },
+  ['pool-stats'],
+  { tags: ['trade-requests'], revalidate: 30 }
+);
+
+export async function getPoolStats() {
+  await requireAuth();
+  
+  try {
+    return await getCachedPoolStats();
   } catch (error) {
     return { totalWeight: 0, capacity: 20000, occupancyRate: 0 };
   }
 }
 
-export async function getActiveShipments() {
-  const session = await requireAuth();
-  
-  try {
-    const isLogistics = session.role === UserRole.LOGISTICS;
-    const isAdmin = session.role === UserRole.ADMIN;
-    
-    // Admin sees all active, Logistics sees accepted ones. We simplify for demo: both see active.
-    return await prisma.tradeRequest.findMany({
+const getCachedActiveShipments = unstable_cache(
+  async () => {
+    return prisma.tradeRequest.findMany({
       where: {
         status: {
           in: [
@@ -161,7 +174,6 @@ export async function getActiveShipments() {
             TradeStatus.IN_TRANSIT
           ]
         },
-        // If logistics, maybe filter by quote.isAccepted & quote.logisticsId, but for demo we show global.
       },
       orderBy: { updatedAt: 'desc' },
       select: {
@@ -171,6 +183,16 @@ export async function getActiveShipments() {
         title: true
       }
     });
+  },
+  ['active-shipments'],
+  { tags: ['trade-requests'], revalidate: 15 }
+);
+
+export async function getActiveShipments() {
+  await requireAuth();
+  
+  try {
+    return await getCachedActiveShipments();
   } catch (error) {
     console.error("Aktif sevkiyat hatası:", error);
     return [];

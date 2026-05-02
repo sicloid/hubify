@@ -1,7 +1,8 @@
 "use server";
 
 import { DocumentType, TradeStatus, UserRole } from "@prisma/client";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
+import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/auth-utils";
 import { uploadFileToS3 } from "@/lib/s3-upload";
@@ -10,10 +11,8 @@ async function requireIccUser() {
   return requireRole([UserRole.ICC_EXPERT, UserRole.ADMIN]);
 }
 
-export async function getIccRequests() {
-  await requireIccUser();
-  
-  try {
+const getCachedIccRequests = unstable_cache(
+  async () => {
     const requests = await prisma.tradeRequest.findMany({
       where: {
         status: {
@@ -49,6 +48,16 @@ export async function getIccRequests() {
         price: Number(q.price)
       }))
     }));
+  },
+  ['icc-requests'],
+  { tags: ['trade-requests'], revalidate: 30 }
+);
+
+export async function getIccRequests() {
+  await requireIccUser();
+  
+  try {
+    return await getCachedIccRequests();
   } catch (error) {
     console.error("ICC talepleri çekilirken hata:", error);
     return [];
@@ -68,6 +77,7 @@ export async function approveDocuments(tradeRequestId: string) {
     revalidatePath("/mali-musavir");
     revalidatePath("/sigorta");
     revalidatePath(`/ihracatci/${tradeRequestId}`);
+    revalidateTag('trade-requests', { expire: 0 });
     return { success: true };
   } catch (error) {
     console.error("Belge onaylama hatası:", error);
@@ -112,6 +122,7 @@ export async function uploadComplianceDocument(tradeRequestId: string, docType: 
   });
 
   revalidatePath("/icc-uzmani");
+  revalidateTag('trade-requests', { expire: 0 });
 }
 
 export async function toggleDocumentApproval(documentId: string, nextApproved: boolean) {
@@ -152,4 +163,5 @@ export async function finalizeIccReview(tradeRequestId: string) {
   revalidatePath("/icc-uzmani");
   revalidatePath("/mali-musavir");
   revalidatePath("/sigorta");
+  revalidateTag('trade-requests', { expire: 0 });
 }
