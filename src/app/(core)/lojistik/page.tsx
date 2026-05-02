@@ -7,6 +7,7 @@ import { StatusBadge, OperationStatus } from "@/components/operasyon/StatusBadge
 import { useEffect, useState } from 'react';
 import { getAvailableRequests, autoConsolidate } from './actions';
 import { TradeStatus } from '@prisma/client';
+import { GlobalTradeRadar } from "@/components/operasyon/GlobalTradeRadar";
 
 // Map Prisma status to OperationStatus
 const mapStatus = (status: TradeStatus): OperationStatus => {
@@ -96,6 +97,16 @@ export default function LojistikPage() {
         >
           <Ship size={400} />
         </motion.div>
+      </motion.div>
+
+      {/* Global Trade Radar Hero Section */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+        className="w-full"
+      >
+        <GlobalTradeRadar role="LOGISTICS" inTransitCount={14} />
       </motion.div>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
