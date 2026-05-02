@@ -11,14 +11,9 @@ datasource db {
 enum UserRole {
   ADMIN
   EXPORTER        // İhracatçı
-  MANUFACTURER    // Üretici
-  SELLER          // Satıcı
   LOGISTICS       // Lojistikçi
-  WAREHOUSE       // Depolama
-  TRADE_EXPERT    // Dış Ticaret Uzmanı
   ICC_EXPERT      // ICC Uzmanı
   FINANCIAL_ADV   // Mali Müşavir
-  ACCOUNTING      // Muhasebe
   INSURER         // Sigortacı
 }
 

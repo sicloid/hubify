@@ -36,14 +36,9 @@ export async function loginAction(prevState: any, formData: FormData) {
   const roleRoutes: Record<string, string> = {
     ADMIN: "/admin",
     EXPORTER: "/ihracatci",
-    MANUFACTURER: "/uretici",
-    SELLER: "/satici",
     LOGISTICS: "/lojistik",
-    WAREHOUSE: "/depo",
-    TRADE_EXPERT: "/dis-ticaret-uzmani",
     ICC_EXPERT: "/icc-uzmani",
     FINANCIAL_ADV: "/mali-musavir",
-    ACCOUNTING: "/muhasebe",
     INSURER: "/sigorta",
   };
 
@@ -89,5 +84,5 @@ export async function registerAction(prevState: any, formData: FormData) {
     fullName: user.fullName,
   });
 
-  redirect(isFirstUser ? "/admin" : "/talepler");
+  redirect(isFirstUser ? "/admin" : "/ihracatci");
 }

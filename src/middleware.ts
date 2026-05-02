@@ -23,14 +23,9 @@ export async function middleware(request: NextRequest) {
       const roleRoutes: Record<string, string> = {
         ADMIN: "/admin",
         EXPORTER: "/ihracatci",
-        MANUFACTURER: "/uretici",
-        SELLER: "/satici",
         LOGISTICS: "/lojistik",
-        WAREHOUSE: "/depo",
-        TRADE_EXPERT: "/dis-ticaret-uzmani",
         ICC_EXPERT: "/icc-uzmani",
         FINANCIAL_ADV: "/mali-musavir",
-        ACCOUNTING: "/muhasebe",
         INSURER: "/sigorta",
       };
       targetUrl = roleRoutes[role] || "/";
