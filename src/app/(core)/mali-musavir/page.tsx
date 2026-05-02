@@ -171,7 +171,6 @@ export default async function FinancialAdvPage() {
                   <p className="font-black text-slate-900">{request.referenceNumber}</p>
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">İhracatçı: {request.exporter.fullName} • {request.status}</p>
                 </div>
-                </div>
               </div>
               <div className="text-right">
                 <p className="text-xs font-black text-slate-900">TAMAMLANDI</p>
