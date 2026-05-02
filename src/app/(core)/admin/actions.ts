@@ -83,3 +83,31 @@ export async function getLiveRadarStats() {
     };
   }
 }
+
+export async function getSupportTickets() {
+  await requireAdmin();
+
+  try {
+    const tickets = await prisma.supportTicket.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 20,
+      include: {
+        user: {
+          select: { fullName: true, role: true }
+        }
+      }
+    });
+
+    return tickets.map(ticket => ({
+      id: ticket.id,
+      type: ticket.type,
+      description: ticket.description,
+      status: ticket.status,
+      time: ticket.createdAt.toLocaleTimeString("tr-TR", { hour: '2-digit', minute: '2-digit' }),
+      user: ticket.user ? `${ticket.user.fullName} (${ticket.user.role})` : "Anonim"
+    }));
+  } catch (error) {
+    console.error("Fetch support tickets error:", error);
+    return [];
+  }
+}
