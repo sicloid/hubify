@@ -7,21 +7,21 @@ export default function TaleplerPage() {
   // Mock data for display purposes
   const stats = [
     {
-      title: "Toplam Talep",
+      title: "Toplam Mikro-İhracat",
       value: "142",
-      description: "Son 30 gün içinde oluşturulan",
+      description: "Son 30 gün içinde açılan parsiyel talepler",
       icon: <Package className="w-5 h-5 text-slate-400" />,
     },
     {
-      title: "Bekleyen",
+      title: "Konsolidasyon Havuzu",
       value: "18",
-      description: "Teklif bekleyen talepler",
+      description: "Birleştirilmeyi bekleyen yükler",
       icon: <Clock className="w-5 h-5 text-amber-500" />,
     },
     {
-      title: "Yolda",
+      title: "Konsolide Edilen Yük",
       value: "24",
-      description: "Şu anda taşınan yükler",
+      description: "Şu anda taşınan birleştirilmiş yükler",
       icon: <Truck className="w-5 h-5 text-indigo-500" />,
     },
   ];
