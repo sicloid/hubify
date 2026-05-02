@@ -1,19 +1,38 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { jwtVerify } from "jose";
+
+const JWT_SECRET = new TextEncoder().encode(
+  process.env.JWT_SECRET || "hubify-super-secret-key-12345"
+);
 
 export async function middleware(request: NextRequest) {
   const token = request.cookies.get("hubify_session")?.value;
   const isAuthPage = request.nextUrl.pathname.startsWith("/login") || request.nextUrl.pathname.startsWith("/register");
-  const isProtectedPath = request.nextUrl.pathname.startsWith("/talepler") || 
-                          request.nextUrl.pathname.startsWith("/evraklar") || 
-                          request.nextUrl.pathname.startsWith("/admin");
-
-  if (!token && isProtectedPath) {
-    return NextResponse.redirect(new URL("/login", request.url));
-  }
+  const isPublicPage = request.nextUrl.pathname === "/";
+  
+  // Protect all core routes (anything not public, not auth, not api/static)
+  // But wait, the easiest way is to protect all routes except public ones.
+  // We'll rely on requireAuth in the layout, but middleware can provide a fast redirect.
 
   if (token && isAuthPage) {
-    return NextResponse.redirect(new URL("/talepler", request.url));
+    let targetUrl = "/";
+    try {
+      const verified = await jwtVerify(token, JWT_SECRET);
+      const role = (verified.payload as any).role;
+      const roleRoutes: Record<string, string> = {
+        ADMIN: "/admin",
+        EXPORTER: "/ihracatci",
+        LOGISTICS: "/lojistik",
+        ICC_EXPERT: "/icc-uzmani",
+        FINANCIAL_ADV: "/mali-musavir",
+        INSURER: "/sigorta",
+      };
+      targetUrl = roleRoutes[role] || "/";
+    } catch (e) {
+      // Invalid token
+    }
+    return NextResponse.redirect(new URL(targetUrl, request.url));
   }
 
   return NextResponse.next();

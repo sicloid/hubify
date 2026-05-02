@@ -11,14 +11,9 @@ async function main() {
   const users = [
     { email: 'admin@hubify.test', fullName: 'Sistem Yöneticisi', role: UserRole.ADMIN },
     { email: 'ihracatci@hubify.test', fullName: 'Ayşe İhracat', role: UserRole.EXPORTER },
-    { email: 'uretici@hubify.test', fullName: 'Kadir Üretici', role: UserRole.MANUFACTURER },
-    { email: 'satici@hubify.test', fullName: 'Irmak Satıcı', role: UserRole.SELLER },
     { email: 'lojistik@hubify.test', fullName: 'Bora Lojistik', role: UserRole.LOGISTICS },
-    { email: 'depo@hubify.test', fullName: 'Fatih Depo', role: UserRole.WAREHOUSE },
-    { email: 'dis-ticaret-uzmani@hubify.test', fullName: 'Gaye Uzman', role: UserRole.TRADE_EXPERT },
     { email: 'icc-uzmani@hubify.test', fullName: 'Hakan Uzman', role: UserRole.ICC_EXPERT },
     { email: 'mali-musavir@hubify.test', fullName: 'Cemal Müşavir', role: UserRole.FINANCIAL_ADV },
-    { email: 'muhasebe@hubify.test', fullName: 'Derya Muhasebe', role: UserRole.ACCOUNTING },
     { email: 'sigorta@hubify.test', fullName: 'Efe Sigorta', role: UserRole.INSURER }
   ];
 
