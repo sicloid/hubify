@@ -93,6 +93,7 @@ model TradeRequest {
 
   // Hedef
   destinationCity String?
+  productImage    String?
   
   exporterId      String         @db.Uuid
   exporter        User           @relation("ExporterRequests", fields: [exporterId], references: [id])

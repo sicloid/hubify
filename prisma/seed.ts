@@ -61,6 +61,7 @@ async function main() {
       paymentStatus: PaymentStatus.ESCROW_HELD,
       destinationCity: 'Berlin, DE',
       weight: 250,
+      productImage: 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?auto=format&fit=crop&q=80&w=1000',
     },
     {
       referenceNumber: 'HZ-2026-002',
@@ -74,6 +75,7 @@ async function main() {
       paymentStatus: PaymentStatus.ESCROW_HELD,
       destinationCity: 'Rotterdam, NL',
       weight: 150,
+      productImage: 'https://images.unsplash.com/photo-1547949003-9792a18a2601?auto=format&fit=crop&q=80&w=1000',
     },
     {
       referenceNumber: 'HZ-2026-003',
@@ -87,6 +89,7 @@ async function main() {
       paymentStatus: PaymentStatus.RELEASED_TO_SELLER,
       destinationCity: 'Hamburg, DE',
       weight: 90,
+      productImage: 'https://images.unsplash.com/photo-1516594798947-e65505dbb29d?auto=format&fit=crop&q=80&w=1000',
     },
     {
       referenceNumber: 'HZ-2026-004',
@@ -100,6 +103,7 @@ async function main() {
       paymentStatus: PaymentStatus.ESCROW_HELD,
       destinationCity: 'Paris, FR',
       weight: 60,
+      productImage: 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&q=80&w=1000',
     },
     {
       referenceNumber: 'HZ-2026-005',
@@ -113,6 +117,7 @@ async function main() {
       paymentStatus: PaymentStatus.AWAITING_PAYMENT,
       destinationCity: 'Madrid, ES',
       weight: 200,
+      productImage: 'https://images.unsplash.com/photo-1537462715879-360eeb61a0ad?auto=format&fit=crop&q=80&w=1000',
     },
     {
       referenceNumber: 'HZ-2026-006',
@@ -126,6 +131,7 @@ async function main() {
       paymentStatus: PaymentStatus.ESCROW_HELD,
       destinationCity: 'Varşova, PL',
       weight: 80,
+      productImage: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&q=80&w=1000',
     },
   ];
 
@@ -141,6 +147,7 @@ async function main() {
       totalPrice: 3360.00,
       currency: 'GBP',
       destinationCity: 'Londra, UK',
+      productImage: 'https://images.unsplash.com/photo-1578749556568-bc2c40e68b61?auto=format&fit=crop&q=80&w=1000',
     },
     {
       referenceNumber: 'HZ-2026-008',
@@ -152,6 +159,7 @@ async function main() {
       totalPrice: 1600.00,
       currency: 'USD',
       destinationCity: 'Dubai, AE',
+      productImage: 'https://images.unsplash.com/photo-1474979266404-7eaacabc88c5?auto=format&fit=crop&q=80&w=1000',
     },
     {
       referenceNumber: 'HZ-2026-009',
@@ -163,6 +171,7 @@ async function main() {
       totalPrice: 1120.00,
       currency: 'USD',
       destinationCity: 'Tokyo, JP',
+      productImage: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&q=80&w=1000',
     },
   ];
 
@@ -178,6 +187,7 @@ async function main() {
           title: request.title,
           description: request.description,
           status: request.status,
+          productImage: (request as any).productImage || null,
           weight: (request as any).weight || Math.floor(Math.random() * 500 + 50),
           unitPrice: (request as any).unitPrice || null,
           totalPrice: (request as any).totalPrice || null,
@@ -202,7 +212,22 @@ async function main() {
       });
       console.log(`Talep eklendi: ${request.referenceNumber} (${request.status})`);
     } else {
-      console.log(`Talep zaten var: ${request.referenceNumber}`);
+      await prisma.tradeRequest.update({
+        where: { id: existing.id },
+        data: {
+          title: request.title,
+          description: request.description,
+        }
+      });
+      
+      if ((request as any).productImage) {
+        await prisma.$executeRawUnsafe(
+          `UPDATE "TradeRequest" SET "productImage" = $1 WHERE id = $2::uuid`,
+          (request as any).productImage,
+          existing.id
+        );
+      }
+      console.log(`Talep güncellendi: ${request.referenceNumber}`);
     }
   }
 

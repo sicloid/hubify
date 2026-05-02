@@ -153,6 +153,42 @@ export default function LojistikTeklifDetayPage({ params: paramsPromise }: { par
               </div>
             </div>
           </div>
+
+          {/* Piyasa Rekabeti / Diğer Teklifler */}
+          <div className="bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden">
+            <div className="px-8 py-6 border-b border-slate-100 bg-slate-50/50">
+              <h3 className="font-bold text-slate-800 flex items-center gap-2 text-sm uppercase tracking-widest">
+                <TrendingDown className="w-4 h-4 text-emerald-600" />
+                Piyasa Rekabet Analizi
+              </h3>
+            </div>
+            <div className="p-0">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-slate-50/50">
+                    <th className="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Firma</th>
+                    <th className="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Fiyat (USD)</th>
+                    <th className="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Teslimat</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 font-medium">
+                  {talep.quotes.map((quote: any, idx: number) => (
+                    <tr key={quote.id} className="hover:bg-slate-50/50 transition-colors">
+                      <td className="px-8 py-4 text-xs text-slate-900 font-bold">Lojistik Firması #{idx + 1}</td>
+                      <td className="px-8 py-4 text-sm font-black text-slate-900">${Number(quote.price).toLocaleString()}</td>
+                      <td className="px-8 py-4 text-xs text-slate-500">{quote.estimatedDays} Gün</td>
+                    </tr>
+                  ))}
+                  {talep.quotes.length === 0 && (
+                    <tr>
+                      <td colSpan={3} className="px-8 py-12 text-center text-xs text-slate-400 font-bold uppercase tracking-widest italic">Henüz piyasa teklifi bulunmuyor</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
         </div>
 
         <div className="lg:col-span-1">

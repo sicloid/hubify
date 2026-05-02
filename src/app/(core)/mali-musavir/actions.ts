@@ -60,7 +60,7 @@ export async function uploadVatReport(tradeRequestId: string, formData: FormData
   if (!existing) {
     await prisma.document.create({
       data: {
-        name: file.name,
+        name: `KDV - ${file.name}`,
         fileUrl,
         type: DocumentType.OTHER,
         isApproved: true,
@@ -71,7 +71,7 @@ export async function uploadVatReport(tradeRequestId: string, formData: FormData
   } else {
     await prisma.document.update({
       where: { id: existing.id },
-      data: { name: file.name, fileUrl, isApproved: true, uploadedById: session.id },
+      data: { name: `KDV - ${file.name}`, fileUrl, isApproved: true, uploadedById: session.id },
     });
   }
 

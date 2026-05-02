@@ -15,7 +15,7 @@ import { GlobalTradeRadar } from "@/components/operasyon/GlobalTradeRadar";
 const mapStatus = (status: TradeStatus): OperationStatus => {
   switch (status) {
     case 'PENDING': return 'Beklemede';
-    case 'ORDERED': return 'Teklif Alındı';
+    case 'ORDERED': return 'Sipariş Verildi';
     case 'QUOTING': return 'Teklif Alındı';
     case 'LOGISTICS_APPROVED': return 'Lojistik Onaylandı';
     default: return 'Beklemede';
@@ -72,7 +72,7 @@ export default function IhracatciPage() {
       >
         <GlobalTradeRadar 
           role="EXPORTER" 
-          activeOrders={talepler.filter(t => ['LOGISTICS_APPROVED', 'DOCUMENTS_PENDING', 'DOCUMENTS_APPROVED', 'IN_TRANSIT'].includes(t.status))} 
+          activeOrders={talepler.filter(t => ['ORDERED', 'QUOTING', 'LOGISTICS_APPROVED', 'DOCUMENTS_PENDING', 'DOCUMENTS_APPROVED', 'IN_TRANSIT'].includes(t.status))} 
         />
       </motion.div>
 
@@ -126,8 +126,12 @@ export default function IhracatciPage() {
                     className="p-6 flex items-center justify-between hover:bg-slate-50/50 transition-colors group"
                   >
                     <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-slate-100 rounded-2xl flex items-center justify-center group-hover:bg-sky-50 transition-colors">
-                        <Package className="w-6 h-6 text-slate-400 group-hover:text-sky-600 transition-colors" />
+                      <div className="w-12 h-12 bg-slate-100 rounded-2xl flex items-center justify-center group-hover:bg-sky-50 transition-colors overflow-hidden">
+                        {talep.productImage ? (
+                          <img src={talep.productImage} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                          <Package className="w-6 h-6 text-slate-400 group-hover:text-sky-600 transition-colors" />
+                        )}
                       </div>
                       <div>
                         <div className="flex items-center gap-2">

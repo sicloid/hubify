@@ -61,7 +61,7 @@ export async function requireAuth(): Promise<AuthSession> {
 export async function requireRole(allowedRoles: UserRole[]): Promise<AuthSession> {
   const session = await requireAuth();
   if (!allowedRoles.includes(session.role)) {
-    redirect("/talepler"); // Veya uygun bir yetkisiz erişim sayfası
+    redirect("/taleplerim"); // Merkezi talep sayfasına yönlendir
   }
   return session;
 }
