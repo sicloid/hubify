@@ -143,4 +143,38 @@ export async function getPoolStats() {
   }
 }
 
+export async function getActiveShipments() {
+  const session = await requireAuth();
+  
+  try {
+    const isLogistics = session.role === UserRole.LOGISTICS;
+    const isAdmin = session.role === UserRole.ADMIN;
+    
+    // Admin sees all active, Logistics sees accepted ones. We simplify for demo: both see active.
+    return await prisma.tradeRequest.findMany({
+      where: {
+        status: {
+          in: [
+            TradeStatus.LOGISTICS_APPROVED,
+            TradeStatus.DOCUMENTS_PENDING,
+            TradeStatus.DOCUMENTS_APPROVED,
+            TradeStatus.IN_TRANSIT
+          ]
+        },
+        // If logistics, maybe filter by quote.isAccepted & quote.logisticsId, but for demo we show global.
+      },
+      orderBy: { updatedAt: 'desc' },
+      select: {
+        id: true,
+        referenceNumber: true,
+        status: true,
+        title: true
+      }
+    });
+  } catch (error) {
+    console.error("Aktif sevkiyat hatası:", error);
+    return [];
+  }
+}
+
 

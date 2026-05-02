@@ -69,7 +69,10 @@ export default function IhracatciPage() {
         transition={{ duration: 0.5 }}
         className="w-full"
       >
-        <GlobalTradeRadar role="EXPORTER" inTransitCount={talepler.filter(t => t.status === 'LOGISTICS_APPROVED').length || 3} />
+        <GlobalTradeRadar 
+          role="EXPORTER" 
+          activeOrders={talepler.filter(t => ['LOGISTICS_APPROVED', 'DOCUMENTS_PENDING', 'DOCUMENTS_APPROVED', 'IN_TRANSIT'].includes(t.status))} 
+        />
       </motion.div>
 
       {/* Real-time Container Sync Card */}

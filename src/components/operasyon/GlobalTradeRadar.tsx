@@ -22,19 +22,52 @@ const DESTINATIONS: { name: string; coordinates: [number, number]; risk: string;
   { name: "Singapur", coordinates: [103.8198, 1.3521], risk: "Orta", delay: "+2 Gün" },
 ];
 
-interface RadarProps {
-  role: "EXPORTER" | "LOGISTICS" | "ADMIN";
-  inTransitCount?: number;
+interface ActiveOrder {
+  id: string;
+  referenceNumber: string;
+  title: string;
+  status: string;
 }
 
-export function GlobalTradeRadar({ role, inTransitCount = 5 }: RadarProps) {
+interface RadarProps {
+  role: "EXPORTER" | "LOGISTICS" | "ADMIN";
+  activeOrders?: ActiveOrder[];
+}
+
+// Simple hash function to map a string (uuid) to a number deterministically
+const hashString = (str: string) => {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = (hash << 5) - hash + str.charCodeAt(i);
+    hash |= 0; // Convert to 32bit integer
+  }
+  return Math.abs(hash);
+};
+
+export function GlobalTradeRadar({ role, activeOrders = [] }: RadarProps) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  const activeDestinations = DESTINATIONS.slice(0, Math.max(2, inTransitCount));
+  // Map each active order to a deterministic destination and hub
+  const mappedOrders = activeOrders.map((order) => {
+    const hash = hashString(order.id);
+    const dest = DESTINATIONS[hash % DESTINATIONS.length];
+    
+    // Pick a hub deterministically
+    const hubKeys = Object.keys(HUBS);
+    const hubName = hubKeys[hash % hubKeys.length];
+
+    return {
+      order,
+      dest,
+      hubName
+    };
+  });
+
+  const inTransitCount = mappedOrders.length;
 
   // Determine role-specific text
   const title = role === "EXPORTER" ? "Küresel İhracat Takibi" : role === "LOGISTICS" ? "Canlı Filo & Operasyon Radarı" : "Küresel Komuta Merkezi";
@@ -89,15 +122,17 @@ export function GlobalTradeRadar({ role, inTransitCount = 5 }: RadarProps) {
           ))}
 
           {/* Active Routes */}
-          {activeDestinations.map((dest, index) => {
+          {mappedOrders.map((mapped, index) => {
+            const { dest, hubName, order } = mapped;
+            const hubCoords = HUBS[hubName];
             const isHighRisk = dest.risk === "Yüksek";
             const lineColor = isHighRisk ? "#f43f5e" : "#10b981"; // Rose for high risk, emerald for normal
 
             return (
-              <g key={dest.name}>
+              <g key={order.id}>
                 {/* Route Track */}
                 <Line
-                  from={HUBS["İSTANBUL"]} // Default to Istanbul for visual
+                  from={hubCoords}
                   to={dest.coordinates}
                   stroke={lineColor}
                   strokeWidth={1.5}
@@ -108,7 +143,7 @@ export function GlobalTradeRadar({ role, inTransitCount = 5 }: RadarProps) {
                 
                 {/* Flow Animation */}
                 <Line
-                  from={HUBS["İSTANBUL"]}
+                  from={hubCoords}
                   to={dest.coordinates}
                   stroke={lineColor}
                   strokeWidth={2.5}
@@ -185,26 +220,32 @@ export function GlobalTradeRadar({ role, inTransitCount = 5 }: RadarProps) {
           <Zap className="w-3 h-3 text-sky-400" /> Canlı Sistem Akışı
         </div>
         <AnimatePresence>
-          {activeDestinations.slice(0, 3).map((dest, i) => (
+          {mappedOrders.slice(0, 4).map((mapped, i) => (
             <motion.div
-              key={dest.name}
+              key={mapped.order.id}
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: i * 0.2 }}
               className="bg-slate-900/60 backdrop-blur-xl p-3 rounded-xl border border-slate-700 shadow-xl"
             >
               <div className="flex justify-between items-center mb-1">
-                <span className="text-xs font-bold text-slate-300">İSTANBUL ➔ {dest.name.toUpperCase()}</span>
-                <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${dest.risk === 'Yüksek' ? 'bg-rose-500/20 text-rose-400' : 'bg-emerald-500/20 text-emerald-400'}`}>
-                  {dest.risk === 'Yüksek' ? 'GECİKME' : 'NORMAL'}
+                <span className="text-xs font-bold text-slate-300">{mapped.order.referenceNumber} ➔ {mapped.dest.name.toUpperCase()}</span>
+                <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${mapped.dest.risk === 'Yüksek' ? 'bg-rose-500/20 text-rose-400' : 'bg-emerald-500/20 text-emerald-400'}`}>
+                  {mapped.dest.risk === 'Yüksek' ? 'GECİKME' : 'NORMAL'}
                 </span>
               </div>
               <div className="flex items-center gap-2 mt-2">
                 <div className="w-1.5 h-1.5 rounded-full bg-sky-400 animate-pulse" />
-                <span className="text-[10px] text-slate-400 font-medium">GPS Sinyali Alınıyor...</span>
+                <span className="text-[10px] text-slate-400 font-medium truncate w-40" title={mapped.order.title}>
+                  {mapped.order.title}
+                </span>
               </div>
             </motion.div>
           ))}
+          
+          {mappedOrders.length === 0 && (
+             <div className="text-xs text-slate-500 italic mt-4">Aktif sevkiyat bulunmuyor...</div>
+          )}
         </AnimatePresence>
       </div>
 
