@@ -59,12 +59,14 @@ export default function Sidebar({ session }: SidebarProps) {
     role === "ICC_EXPERT" ? "/icc-uzmani/raporlar" : 
     role === "INSURER" ? "/sigorta/raporlar" : 
     role === "FINANCIAL_ADV" ? "/mali-musavir/raporlar" : 
+    role === "BUYER" ? "/pazaryeri/raporlar" : 
     "#raporlar";
     
   const reportsActive =
     (role === "ICC_EXPERT" && pathname === "/icc-uzmani/raporlar") ||
     (role === "INSURER" && pathname === "/sigorta/raporlar") ||
-    (role === "FINANCIAL_ADV" && pathname === "/mali-musavir/raporlar");
+    (role === "FINANCIAL_ADV" && pathname === "/mali-musavir/raporlar") ||
+    (role === "BUYER" && pathname === "/pazaryeri/raporlar");
 
   return (
     <motion.aside 
@@ -216,9 +218,11 @@ export default function Sidebar({ session }: SidebarProps) {
             </div>
             {[
               { name: "Taleplerim", icon: FileText, route: "/taleplerim" },
-              { name: "Kargo & Lojistik", icon: Truck, route: "#lojistik" },
-              { name: "Gümrük Belgeleri", icon: Files, route: "#belgeler" },
-              { name: "Fatura & Finans", icon: Landmark, route: "#finans" },
+              ...(role !== "BUYER" ? [
+                { name: "Kargo & Lojistik", icon: Truck, route: "#lojistik" },
+                { name: "Gümrük Belgeleri", icon: Files, route: "#belgeler" },
+                { name: "Fatura & Finans", icon: Landmark, route: "#finans" },
+              ] : [])
             ].map((item, idx) => (
               <Link key={idx} href={item.route} className="block relative mt-2">
                 {pathname === item.route && (
