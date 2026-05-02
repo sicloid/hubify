@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
-import { ArrowLeft, Send, Package, Truck, CheckCircle2, Info, MapPin } from "lucide-react";
+import { ArrowLeft, Send, Package, Truck, CheckCircle2, Info, MapPin, DollarSign, Tag } from "lucide-react";
 import Link from "next/link";
 import { createTradeRequest } from '../actions';
 
@@ -20,11 +20,16 @@ export default function YeniTalepPage() {
     const title = formData.get("title") as string;
     const city = formData.get("city") as string;
     const weight = parseFloat(formData.get("weight") as string);
+    const unitPrice = parseFloat(formData.get("unitPrice") as string);
+    const currency = formData.get("currency") as string || "USD";
     
     const result = await createTradeRequest({
       title,
-      description: `${city} hedefli mikro-ihracat yükü.`,
-      weight: weight,
+      description: `${city} hedefli mikro-ihracat ürünü.`,
+      weight,
+      unitPrice,
+      currency,
+      destinationCity: city,
     });
 
     if (result.success) {
@@ -54,8 +59,8 @@ export default function YeniTalepPage() {
                 <ArrowLeft className="w-4 h-4 mr-1" />
                 Panoya Dön
               </Link>
-              <h1 className="text-3xl font-bold text-slate-900">Yeni Mikro-İhracat Talebi</h1>
-              <p className="text-slate-500 mt-2">Yükünüzü sisteme girin, konteyner havuzundaki yerinizi ayırtın.</p>
+              <h1 className="text-3xl font-bold text-slate-900">Yeni Ürün İlanı Oluştur</h1>
+              <p className="text-slate-500 mt-2">Ürününüzü listeleyin, alıcılar pazaryerinde görsün.</p>
             </div>
 
             <form onSubmit={handleSubmit} className="bg-white border border-slate-200 rounded-3xl shadow-xl shadow-slate-200/50 overflow-hidden">
@@ -71,7 +76,7 @@ export default function YeniTalepPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div className="space-y-4">
-                    <label className="block text-sm font-bold text-slate-700">Ne Gönderiyorsunuz?</label>
+                    <label className="block text-sm font-bold text-slate-700">Ne Satıyorsunuz?</label>
                     <div className="relative">
                       <Package className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                       <input name="title" required type="text" placeholder="Örn: El dokuması halı" className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-secondary focus:border-transparent outline-none transition-all" />
@@ -79,7 +84,23 @@ export default function YeniTalepPage() {
                   </div>
                   <div className="space-y-4">
                     <label className="block text-sm font-bold text-slate-700">Ağırlık (kg)</label>
-                    <input name="weight" required type="number" placeholder="Örn: 25" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-secondary focus:border-transparent outline-none transition-all" />
+                    <input name="weight" required type="number" step="0.1" placeholder="Örn: 25" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-secondary focus:border-transparent outline-none transition-all" />
+                  </div>
+                  <div className="space-y-4">
+                    <label className="block text-sm font-bold text-slate-700">Birim Fiyat (kg başına)</label>
+                    <div className="relative">
+                      <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                      <input name="unitPrice" required type="number" step="0.01" placeholder="Örn: 12.50" className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-secondary focus:border-transparent outline-none transition-all" />
+                    </div>
+                  </div>
+                  <div className="space-y-4">
+                    <label className="block text-sm font-bold text-slate-700">Para Birimi</label>
+                    <select name="currency" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-secondary focus:border-transparent outline-none transition-all">
+                      <option value="USD">USD ($)</option>
+                      <option value="EUR">EUR (€)</option>
+                      <option value="TRY">TRY (₺)</option>
+                      <option value="GBP">GBP (£)</option>
+                    </select>
                   </div>
                   <div className="space-y-4">
                     <label className="block text-sm font-bold text-slate-700">Nereye? (Hedef Şehir)</label>
@@ -104,7 +125,7 @@ export default function YeniTalepPage() {
 
                 <div className="pt-6 border-t border-slate-100 flex justify-between items-center">
                   <p className="text-xs text-slate-400 max-w-xs">
-                    Talebiniz yayınlandığında lojistik firmaları konteyner havuzuna göre size en uygun fiyatı sunacaktır.
+                    Ürününüz pazaryerinde yayınlanacak. Alıcı sipariş verdiğinde ödeme ICC güvencesinde (escrow) tutulur.
                   </p>
                   <button 
                     type="submit"
@@ -114,9 +135,9 @@ export default function YeniTalepPage() {
                     {isPending ? (
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
                     ) : (
-                      <Send className="w-4 h-4 mr-2" />
+                      <Tag className="w-4 h-4 mr-2" />
                     )}
-                    Yükü Havuza Gönder
+                    İlanı Yayınla
                   </button>
                 </div>
               </div>
@@ -160,9 +181,9 @@ export default function YeniTalepPage() {
             </div>
 
             <div className="space-y-4">
-              <h2 className="text-3xl font-bold text-slate-900">Yükünüz Yola Hazır!</h2>
+              <h2 className="text-3xl font-bold text-slate-900">İlanınız Yayında!</h2>
               <p className="text-slate-500 max-w-sm mx-auto">
-                Mikro-ihracat talebiniz oluşturuldu ve konteyner havuzuna eklendi. Lojistik firmaları tekliflerini birazdan iletecektir.
+                Ürün ilanınız pazaryerinde yayınlandı. Alıcılar sipariş verdiğinde bilgilendirileceksiniz.
               </p>
             </div>
 

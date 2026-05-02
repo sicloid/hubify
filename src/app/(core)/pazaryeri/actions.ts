@@ -2,7 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { requireAuth, requireRole } from "@/lib/auth-utils";
-import { TradeStatus, UserRole } from "@prisma/client";
+import { TradeStatus, UserRole, PaymentStatus } from "@prisma/client";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { unstable_cache } from "next/cache";
 
@@ -29,18 +29,23 @@ export async function getAvailableProducts() {
   await requireAuth();
 
   try {
-    return await getCachedProducts();
+    const products = await getCachedProducts();
+    return products.map(p => ({
+      ...p,
+      unitPrice: p.unitPrice ? Number(p.unitPrice) : null,
+      totalPrice: p.totalPrice ? Number(p.totalPrice) : null,
+    }));
   } catch (error) {
     console.error("Ürünler çekilirken hata:", error);
     return [];
   }
 }
 
+// Sipariş ver — ödeme bekleniyor
 export async function placeOrder(tradeRequestId: string) {
   const session = await requireRole([UserRole.BUYER, UserRole.ADMIN]);
 
   try {
-    // Verify the request is still available
     const request = await prisma.tradeRequest.findUnique({
       where: { id: tradeRequestId }
     });
@@ -54,6 +59,7 @@ export async function placeOrder(tradeRequestId: string) {
       data: {
         buyerId: session.id,
         status: TradeStatus.ORDERED,
+        paymentStatus: PaymentStatus.AWAITING_PAYMENT,
       }
     });
 
@@ -65,6 +71,42 @@ export async function placeOrder(tradeRequestId: string) {
   } catch (error) {
     console.error("Sipariş hatası:", error);
     return { success: false, error: "Sipariş oluşturulamadı." };
+  }
+}
+
+// Ödeme simülasyonu — escrow'a al
+export async function confirmPayment(tradeRequestId: string) {
+  const session = await requireRole([UserRole.BUYER, UserRole.ADMIN]);
+
+  try {
+    const request = await prisma.tradeRequest.findUnique({
+      where: { id: tradeRequestId }
+    });
+
+    if (!request || request.buyerId !== session.id) {
+      return { success: false, error: "Bu siparişe erişiminiz yok." };
+    }
+
+    if (request.paymentStatus !== PaymentStatus.AWAITING_PAYMENT) {
+      return { success: false, error: "Ödeme zaten alınmış." };
+    }
+
+    await prisma.tradeRequest.update({
+      where: { id: tradeRequestId },
+      data: {
+        paymentStatus: PaymentStatus.ESCROW_HELD,
+        paidAt: new Date(),
+      }
+    });
+
+    revalidatePath("/pazaryeri");
+    revalidatePath("/ihracatci");
+    revalidatePath("/icc-uzmani");
+    revalidateTag('trade-requests', { expire: 0 });
+    return { success: true };
+  } catch (error) {
+    console.error("Ödeme hatası:", error);
+    return { success: false, error: "Ödeme işlemi başarısız." };
   }
 }
 
@@ -88,7 +130,12 @@ export async function getMyOrders() {
   );
 
   try {
-    return await getCachedMyOrders();
+    const orders = await getCachedMyOrders();
+    return orders.map(o => ({
+      ...o,
+      unitPrice: o.unitPrice ? Number(o.unitPrice) : null,
+      totalPrice: o.totalPrice ? Number(o.totalPrice) : null,
+    }));
   } catch (error) {
     console.error("Siparişler çekilirken hata:", error);
     return [];

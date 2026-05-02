@@ -10,10 +10,14 @@ export async function createTradeRequest(data: {
   title: string;
   description: string;
   weight: number;
+  unitPrice: number;
+  currency: string;
+  destinationCity: string;
 }) {
   const session = await requireRole([UserRole.EXPORTER, UserRole.ADMIN]);
   
   const referenceNumber = `HUB-${Math.floor(1000 + Math.random() * 9000)}`;
+  const totalPrice = data.unitPrice * data.weight;
 
   try {
     const request = await prisma.tradeRequest.create({
@@ -22,12 +26,17 @@ export async function createTradeRequest(data: {
         title: data.title,
         description: data.description,
         weight: data.weight,
+        unitPrice: data.unitPrice,
+        currency: data.currency,
+        totalPrice,
+        destinationCity: data.destinationCity,
         status: TradeStatus.PENDING,
         exporterId: session.id,
       },
     });
 
     revalidatePath("/ihracatci");
+    revalidatePath("/pazaryeri");
     revalidateTag('trade-requests', { expire: 0 });
     return { success: true, id: request.id };
   } catch (error) {

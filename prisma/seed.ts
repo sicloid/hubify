@@ -1,4 +1,4 @@
-import { PrismaClient, TradeStatus, UserRole, DocumentType } from '@prisma/client';
+import { PrismaClient, TradeStatus, UserRole, DocumentType, PaymentStatus } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
@@ -47,7 +47,7 @@ async function main() {
     throw new Error('Temel rol kullanıcıları bulunamadı.');
   }
 
-  // Sipariş alınmış ürünler (buyer atanmış, pipeline'a girmiş)
+  // Sipariş alınmış ürünler (buyer atanmış, pipeline'a girmiş, fiyatlı)
   const orderedRequests = [
     {
       referenceNumber: 'HZ-2026-001',
@@ -55,6 +55,12 @@ async function main() {
       description: 'Konsolide tekstil urunleri sevkiyati',
       status: TradeStatus.LOGISTICS_APPROVED,
       buyerId: buyer.id,
+      unitPrice: 8.50,
+      totalPrice: 2125.00,
+      currency: 'EUR',
+      paymentStatus: PaymentStatus.ESCROW_HELD,
+      destinationCity: 'Berlin, DE',
+      weight: 250,
     },
     {
       referenceNumber: 'HZ-2026-002',
@@ -62,6 +68,12 @@ async function main() {
       description: 'Belgeleri kismen yuklenmis dosya',
       status: TradeStatus.DOCUMENTS_PENDING,
       buyerId: buyer.id,
+      unitPrice: 22.00,
+      totalPrice: 3300.00,
+      currency: 'EUR',
+      paymentStatus: PaymentStatus.ESCROW_HELD,
+      destinationCity: 'Rotterdam, NL',
+      weight: 150,
     },
     {
       referenceNumber: 'HZ-2026-003',
@@ -69,6 +81,12 @@ async function main() {
       description: 'ICC onayi tamam, finans islemleri bekleniyor',
       status: TradeStatus.DOCUMENTS_APPROVED,
       buyerId: buyer.id,
+      unitPrice: 15.00,
+      totalPrice: 1350.00,
+      currency: 'USD',
+      paymentStatus: PaymentStatus.RELEASED_TO_SELLER,
+      destinationCity: 'Hamburg, DE',
+      weight: 90,
     },
     {
       referenceNumber: 'HZ-2026-004',
@@ -76,6 +94,12 @@ async function main() {
       description: 'Lojistik onayi aldi, ICC belge yuklemesi bekliyor',
       status: TradeStatus.LOGISTICS_APPROVED,
       buyerId: buyer.id,
+      unitPrice: 45.00,
+      totalPrice: 2700.00,
+      currency: 'EUR',
+      paymentStatus: PaymentStatus.ESCROW_HELD,
+      destinationCity: 'Paris, FR',
+      weight: 60,
     },
     {
       referenceNumber: 'HZ-2026-005',
@@ -83,6 +107,12 @@ async function main() {
       description: 'Konşimento yuklenmis, gumruk beyannamesi bekliyor',
       status: TradeStatus.DOCUMENTS_PENDING,
       buyerId: buyer.id,
+      unitPrice: 32.00,
+      totalPrice: 6400.00,
+      currency: 'USD',
+      paymentStatus: PaymentStatus.AWAITING_PAYMENT,
+      destinationCity: 'Madrid, ES',
+      weight: 200,
     },
     {
       referenceNumber: 'HZ-2026-006',
@@ -90,10 +120,16 @@ async function main() {
       description: 'Belgeler yuklu fakat ICC onayi alinmamis',
       status: TradeStatus.DOCUMENTS_PENDING,
       buyerId: buyer.id,
+      unitPrice: 18.50,
+      totalPrice: 1480.00,
+      currency: 'USD',
+      paymentStatus: PaymentStatus.ESCROW_HELD,
+      destinationCity: 'Varşova, PL',
+      weight: 80,
     },
   ];
 
-  // Alıcı bekleyen ürün ilanları (PENDING – pazaryerinde görünecek)
+  // Alıcı bekleyen ürün ilanları (PENDING – pazaryerinde görünecek, fiyatlı)
   const pendingListings = [
     {
       referenceNumber: 'HZ-2026-007',
@@ -101,6 +137,10 @@ async function main() {
       description: 'El yapımı seramik ürünler, 30 adet',
       status: TradeStatus.PENDING,
       weight: 120,
+      unitPrice: 28.00,
+      totalPrice: 3360.00,
+      currency: 'GBP',
+      destinationCity: 'Londra, UK',
     },
     {
       referenceNumber: 'HZ-2026-008',
@@ -108,6 +148,10 @@ async function main() {
       description: 'Soğuk sıkım organik zeytinyağı, 500ml x 200 şişe',
       status: TradeStatus.PENDING,
       weight: 250,
+      unitPrice: 6.40,
+      totalPrice: 1600.00,
+      currency: 'USD',
+      destinationCity: 'Dubai, AE',
     },
     {
       referenceNumber: 'HZ-2026-009',
@@ -115,6 +159,10 @@ async function main() {
       description: 'Antep pul biberi, kekik, sumak karma seti',
       status: TradeStatus.PENDING,
       weight: 80,
+      unitPrice: 14.00,
+      totalPrice: 1120.00,
+      currency: 'USD',
+      destinationCity: 'Tokyo, JP',
     },
   ];
 
@@ -131,6 +179,11 @@ async function main() {
           description: request.description,
           status: request.status,
           weight: (request as any).weight || Math.floor(Math.random() * 500 + 50),
+          unitPrice: (request as any).unitPrice || null,
+          totalPrice: (request as any).totalPrice || null,
+          currency: (request as any).currency || 'USD',
+          paymentStatus: (request as any).paymentStatus || null,
+          destinationCity: (request as any).destinationCity || null,
           exporterId: exporter.id,
           buyerId: (request as any).buyerId || null,
           ...((request as any).buyerId ? {

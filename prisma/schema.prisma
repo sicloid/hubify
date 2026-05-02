@@ -30,6 +30,13 @@ enum TradeStatus {
   CANCELLED
 }
 
+enum PaymentStatus {
+  AWAITING_PAYMENT     // Sipariş verildi, ödeme bekleniyor
+  ESCROW_HELD          // Ödeme alındı, ICC kontrolünde
+  RELEASED_TO_SELLER   // ICC onayı sonrası satıcıya aktarıldı
+  REFUNDED             // İade edildi
+}
+
 enum DocumentType {
   COMMERCIAL_INVOICE
   BILL_OF_LADING
@@ -68,21 +75,33 @@ model User {
 }
 
 model TradeRequest {
-  id              String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  referenceNumber String       @unique
+  id              String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  referenceNumber String         @unique
   title           String
   description     String?
-  status          TradeStatus  @default(PENDING)
-  weight          Float        @default(0)
-  
-  exporterId      String       @db.Uuid
-  exporter        User         @relation("ExporterRequests", fields: [exporterId], references: [id])
+  status          TradeStatus    @default(PENDING)
+  weight          Float          @default(0)
 
-  buyerId         String?      @db.Uuid
-  buyer           User?        @relation("BuyerOrders", fields: [buyerId], references: [id])
+  // Fiyatlandırma
+  unitPrice       Decimal?       @db.Decimal(10, 2)
+  currency        String         @default("USD")
+  totalPrice      Decimal?       @db.Decimal(12, 2)
+
+  // Ödeme (Escrow — ICC kontrolünde)
+  paymentStatus   PaymentStatus?
+  paidAt          DateTime?
+
+  // Hedef
+  destinationCity String?
   
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
+  exporterId      String         @db.Uuid
+  exporter        User           @relation("ExporterRequests", fields: [exporterId], references: [id])
+
+  buyerId         String?        @db.Uuid
+  buyer           User?          @relation("BuyerOrders", fields: [buyerId], references: [id])
+  
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
 
   quotes          LogisticsQuote[]
   documents       Document[]
