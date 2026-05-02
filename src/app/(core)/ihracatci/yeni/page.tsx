@@ -7,6 +7,7 @@ import Link from "next/link";
 import { createTradeRequest } from '../actions';
 
 export default function YeniTalepPage() {
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -17,20 +18,7 @@ export default function YeniTalepPage() {
     setError(null);
 
     const formData = new FormData(e.currentTarget);
-    const title = formData.get("title") as string;
-    const city = formData.get("city") as string;
-    const weight = parseFloat(formData.get("weight") as string);
-    const unitPrice = parseFloat(formData.get("unitPrice") as string);
-    const currency = formData.get("currency") as string || "USD";
-    
-    const result = await createTradeRequest({
-      title,
-      description: `${city} hedefli mikro-ihracat ürünü.`,
-      weight,
-      unitPrice,
-      currency,
-      destinationCity: city,
-    });
+    const result = await createTradeRequest(formData);
 
     if (result.success) {
       setIsSubmitted(true);
@@ -38,6 +26,14 @@ export default function YeniTalepPage() {
       setError(result.error || "Bir hata oluştu.");
     }
     setIsPending(false);
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const url = URL.createObjectURL(file);
+      setImagePreview(url);
+    }
   };
 
   return (
@@ -65,37 +61,70 @@ export default function YeniTalepPage() {
 
             <form onSubmit={handleSubmit} className="bg-white border border-slate-200 rounded-3xl shadow-xl shadow-slate-200/50 overflow-hidden">
               <div className="p-8 space-y-8">
-                {/* Visual Info Card */}
-                <div className="bg-brand-primary rounded-2xl p-6 text-white flex items-center gap-6 relative overflow-hidden">
-                  <div className="relative z-10">
-                    <h3 className="font-bold text-lg">Neden Mikro-İhracat?</h3>
-                    <p className="text-slate-300 text-sm mt-1">LCL (Parsiyel) taşımacılık ile konteyner maliyetini diğer satıcılarla bölüşürsünüz.</p>
+                {/* Product Image Upload Section */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
+                  <div className="md:col-span-1 space-y-4">
+                    <label className="block text-sm font-bold text-slate-700">Ürün Fotoğrafı</label>
+                    <div className="relative aspect-square rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 flex flex-col items-center justify-center overflow-hidden hover:border-brand-secondary transition-colors cursor-pointer group">
+                      {imagePreview ? (
+                        <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                      ) : (
+                        <>
+                          <Package className="w-10 h-10 text-slate-300 group-hover:text-brand-secondary transition-colors" />
+                          <p className="text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-widest">Fotoğraf Yükle</p>
+                        </>
+                      )}
+                      <input 
+                        name="productImage" 
+                        type="file" 
+                        accept="image/*" 
+                        onChange={handleImageChange}
+                        className="absolute inset-0 opacity-0 cursor-pointer" 
+                      />
+                    </div>
                   </div>
-                  <Package className="w-20 h-20 text-white/10 absolute right-[-10px] top-[-10px]" />
+
+                  <div className="md:col-span-2 space-y-6">
+                    {/* Visual Info Card */}
+                    <div className="bg-brand-primary rounded-2xl p-6 text-white flex items-center gap-6 relative overflow-hidden h-full">
+                      <div className="relative z-10">
+                        <h3 className="font-bold text-lg">Neden Mikro-İhracat?</h3>
+                        <p className="text-slate-300 text-sm mt-1 leading-relaxed">LCL (Parsiyel) taşımacılık ile konteyner maliyetini diğer satıcılarla bölüşürsünüz.</p>
+                      </div>
+                      <Truck className="w-24 h-24 text-white/10 absolute right-[-10px] top-[-10px]" />
+                    </div>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div className="space-y-4">
-                    <label className="block text-sm font-bold text-slate-700">Ne Satıyorsunuz?</label>
+                    <label className="block text-sm font-bold text-slate-700">Ne Satıyorsunuz? (Ürün Adı)</label>
                     <div className="relative">
-                      <Package className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                      <input name="title" required type="text" placeholder="Örn: El dokuması halı" className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-secondary focus:border-transparent outline-none transition-all" />
+                      <Package className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                      <input name="title" required type="text" placeholder="Örn: El dokuması halı" className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-secondary focus:border-transparent outline-none transition-all" />
+                    </div>
+                  </div>
+                  <div className="space-y-4">
+                    <label className="block text-sm font-bold text-slate-700">Hedef Şehir (Lojistik için)</label>
+                    <div className="relative">
+                      <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                      <input name="destinationCity" required type="text" placeholder="Örn: Berlin, DE" className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-secondary focus:border-transparent outline-none transition-all" />
                     </div>
                   </div>
                   <div className="space-y-4">
                     <label className="block text-sm font-bold text-slate-700">Ağırlık (kg)</label>
-                    <input name="weight" required type="number" step="0.1" placeholder="Örn: 25" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-secondary focus:border-transparent outline-none transition-all" />
+                    <input name="weight" required type="number" step="0.1" placeholder="Örn: 25" className="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-secondary focus:border-transparent outline-none transition-all" />
                   </div>
                   <div className="space-y-4">
                     <label className="block text-sm font-bold text-slate-700">Birim Fiyat (kg başına)</label>
                     <div className="relative">
-                      <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                      <input name="unitPrice" required type="number" step="0.01" placeholder="Örn: 12.50" className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-secondary focus:border-transparent outline-none transition-all" />
+                      <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                      <input name="unitPrice" required type="number" step="0.01" placeholder="Örn: 12.50" className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-secondary focus:border-transparent outline-none transition-all" />
                     </div>
                   </div>
                   <div className="space-y-4">
                     <label className="block text-sm font-bold text-slate-700">Para Birimi</label>
-                    <select name="currency" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-secondary focus:border-transparent outline-none transition-all">
+                    <select name="currency" className="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-secondary focus:border-transparent outline-none transition-all font-bold">
                       <option value="USD">USD ($)</option>
                       <option value="EUR">EUR (€)</option>
                       <option value="TRY">TRY (₺)</option>
@@ -103,41 +132,30 @@ export default function YeniTalepPage() {
                     </select>
                   </div>
                   <div className="space-y-4">
-                    <label className="block text-sm font-bold text-slate-700">Nereye? (Hedef Şehir)</label>
-                    <div className="relative">
-                      <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                      <input name="city" required type="text" placeholder="Örn: Berlin, DE" className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-secondary focus:border-transparent outline-none transition-all" />
-                    </div>
-                  </div>
-                  <div className="space-y-4">
-                    <label className="block text-sm font-bold text-slate-700">Hacim Tahmini</label>
-                    <select className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-secondary focus:border-transparent outline-none transition-all">
-                      <option>1m³ altı (Koli/Paket)</option>
-                      <option>1-3m³ (Palet)</option>
-                      <option>3m³+ (Büyük Hacim)</option>
-                    </select>
+                    <label className="block text-sm font-bold text-slate-700">Açıklama (Alıcıya Notlar)</label>
+                    <textarea name="description" placeholder="Ürün özellikleri, ambalaj detayları vb." rows={1} className="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-brand-secondary focus:border-transparent outline-none transition-all resize-none" />
                   </div>
                 </div>
 
                 {error && (
-                  <p className="text-red-500 text-xs font-bold">{error}</p>
+                  <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-red-500 text-xs font-bold bg-red-50 p-3 rounded-lg border border-red-100">{error}</motion.p>
                 )}
 
                 <div className="pt-6 border-t border-slate-100 flex justify-between items-center">
-                  <p className="text-xs text-slate-400 max-w-xs">
-                    Ürününüz pazaryerinde yayınlanacak. Alıcı sipariş verdiğinde ödeme ICC güvencesinde (escrow) tutulur.
+                  <p className="text-[10px] text-slate-400 max-w-[200px] font-medium leading-relaxed uppercase tracking-tighter">
+                    Ürününüz pazaryerinde yayınlanacak. Ödeme ICC güvencesinde tutulur.
                   </p>
                   <button 
                     type="submit"
                     disabled={isPending}
-                    className="inline-flex items-center px-8 py-3 bg-brand-primary text-white rounded-xl text-sm font-bold hover:bg-slate-800 transition-all hover:scale-105 active:scale-95 shadow-lg shadow-slate-200 disabled:opacity-50"
+                    className="inline-flex items-center px-10 py-4 bg-slate-900 text-white rounded-2xl text-sm font-black hover:bg-slate-800 transition-all hover:scale-105 active:scale-95 shadow-xl shadow-slate-200 disabled:opacity-50"
                   >
                     {isPending ? (
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-3" />
                     ) : (
-                      <Tag className="w-4 h-4 mr-2" />
+                      <Send className="w-5 h-5 mr-3" />
                     )}
-                    İlanı Yayınla
+                    İlani Yayina Al
                   </button>
                 </div>
               </div>

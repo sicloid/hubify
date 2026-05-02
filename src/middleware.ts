@@ -23,6 +23,7 @@ export async function middleware(request: NextRequest) {
       const roleRoutes: Record<string, string> = {
         ADMIN: "/admin",
         EXPORTER: "/ihracatci",
+        BUYER: "/pazaryeri",
         LOGISTICS: "/lojistik",
         ICC_EXPERT: "/icc-uzmani",
         FINANCIAL_ADV: "/mali-musavir",

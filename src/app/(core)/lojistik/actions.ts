@@ -36,7 +36,7 @@ const getCachedAvailableRequests = unstable_cache(
 );
 
 export async function getAvailableRequests() {
-  await requireRole([UserRole.LOGISTICS, UserRole.ADMIN, UserRole.EXPORTER]);
+  await requireRole([UserRole.LOGISTICS, UserRole.ADMIN, UserRole.EXPORTER, UserRole.ICC_EXPERT, UserRole.FINANCIAL_ADV]);
   
   try {
     const data = await getCachedAvailableRequests();
@@ -47,22 +47,24 @@ export async function getAvailableRequests() {
   }
 }
 
-export async function getRequestDetail(id: string) {
-  await requireAuth();
-  
+export async function getRequestDetail(idOrRef: string) {
+  const session = await requireAuth();
+
   try {
-    const request = await prisma.tradeRequest.findUnique({
-      where: { id },
+    const request = await prisma.tradeRequest.findFirst({
+      where: {
+        OR: [
+          { id: idOrRef.length === 36 ? idOrRef : undefined },
+          { referenceNumber: idOrRef }
+        ]
+      },
       include: {
-        exporter: {
-          select: { fullName: true }
-        },
+        exporter: { select: { fullName: true } },
         quotes: {
           include: {
-            logistics: {
-              select: { fullName: true }
-            }
-          }
+            logistics: { select: { fullName: true } }
+          },
+          orderBy: { price: 'asc' }
         }
       }
     });
@@ -71,6 +73,7 @@ export async function getRequestDetail(id: string) {
 
     return serializeDecimal(request);
   } catch (error) {
+    console.error("Talep detay hatası:", error);
     return null;
   }
 }
@@ -100,7 +103,8 @@ export async function createQuote(data: {
     });
 
     revalidatePath("/lojistik");
-    revalidateTag('trade-requests', { expire: 0 });
+    revalidatePath(`/lojistik/${data.tradeRequestId}`);
+    revalidateTag('trade-requests');
     return { success: true };
   } catch (error) {
     console.error("Teklif hatası:", error);
@@ -118,7 +122,7 @@ export async function autoConsolidate() {
     });
     
     revalidatePath("/lojistik");
-    revalidateTag('trade-requests', { expire: 0 });
+    revalidateTag('trade-requests');
     return { success: true };
   } catch (error) {
     console.error("Otomatik konsolidasyon hatası:", error);
@@ -190,11 +194,60 @@ export async function getActiveShipments() {
   await requireAuth();
   
   try {
-    return await getCachedActiveShipments();
+    const data = await getCachedActiveShipments();
+    return serializeDecimal(data);
   } catch (error) {
     console.error("Aktif sevkiyat hatası:", error);
     return [];
   }
 }
 
+export async function getMyQuotes() {
+  const session = await requireRole([UserRole.LOGISTICS, UserRole.ADMIN]);
+
+  try {
+    const quotes = await prisma.$queryRawUnsafe<any[]>(
+      `SELECT q.*, t.title as "tradeTitle", t."referenceNumber", t.status as "tradeStatus"
+       FROM "LogisticsQuote" q
+       JOIN "TradeRequest" t ON q."tradeRequestId" = t.id
+       WHERE q."logisticsId" = $1::uuid
+       ORDER BY q."createdAt" DESC`,
+      session.id
+    );
+
+    return serializeDecimal(quotes);
+  } catch (error) {
+    console.error("Tekliflerim çekilirken hata:", error);
+    return [];
+  }
+}
+
+export async function getApprovedHistory() {
+  await requireRole([UserRole.ICC_EXPERT, UserRole.FINANCIAL_ADV, UserRole.ADMIN]);
+
+  try {
+    const history = await prisma.tradeRequest.findMany({
+      where: {
+        status: {
+          in: [
+            TradeStatus.DOCUMENTS_APPROVED,
+            TradeStatus.IN_TRANSIT,
+            TradeStatus.COMPLETED
+          ]
+        }
+      },
+      include: {
+        exporter: { select: { fullName: true } },
+        _count: { select: { documents: true } }
+      },
+      orderBy: { updatedAt: 'desc' },
+      take: 20
+    });
+
+    return serializeDecimal(history);
+  } catch (error) {
+    console.error("Onay geçmişi hatası:", error);
+    return [];
+  }
+}
 

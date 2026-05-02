@@ -21,19 +21,23 @@ const mapStatus = (status: TradeStatus): OperationStatus => {
 
 export default function LojistikPage() {
   const [talepler, setTalepler] = useState<any[]>([]);
+  const [myQuotes, setMyQuotes] = useState<any[]>([]);
   const [activeShipments, setActiveShipments] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<'pool' | 'quotes'>('pool');
   const [isConsolidating, setIsConsolidating] = useState(false);
   const [showPoolDetails, setShowPoolDetails] = useState(false);
 
   async function loadData() {
     setIsLoading(true);
-    const [data, activeData] = await Promise.all([
+    const [data, activeData, quotesData] = await Promise.all([
       getAvailableRequests(),
-      getActiveShipments()
+      getActiveShipments(),
+      import('./actions').then(m => m.getMyQuotes())
     ]);
     setTalepler(data);
     setActiveShipments(activeData);
+    setMyQuotes(quotesData);
     setIsLoading(false);
   }
 
@@ -56,7 +60,6 @@ export default function LojistikPage() {
   const capacity = 20000; // 20 tons
   const occupancyRate = Math.min(Math.round((totalWeight / capacity) * 100), 100);
 
-  // Calculate "last increase" (simulated for UI impact)
   const lastRequest = [...poolRequests].sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())[0];
   const lastIncrease = lastRequest ? Math.round((lastRequest.weight / capacity) * 100) : 0;
 
@@ -64,7 +67,7 @@ export default function LojistikPage() {
 
   return (
     <div className="space-y-8 pb-12">
-      {/* Hero / Header with Animation */}
+      {/* Hero / Header */}
       <motion.div 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -91,12 +94,8 @@ export default function LojistikPage() {
           </div>
         </div>
         
-        {/* Animated Background SVG (Abstract Ship/Container) */}
         <motion.div 
-          animate={{ 
-            rotate: [0, 5, 0],
-            y: [0, -10, 0]
-          }}
+          animate={{ rotate: [0, 5, 0], y: [0, -10, 0] }}
           transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
           className="absolute right-[-50px] top-[-20px] opacity-10 pointer-events-none"
         >
@@ -104,7 +103,7 @@ export default function LojistikPage() {
         </motion.div>
       </motion.div>
 
-      {/* Global Trade Radar Hero Section */}
+      {/* Global Trade Radar */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -114,140 +113,115 @@ export default function LojistikPage() {
         <GlobalTradeRadar role="LOGISTICS" activeOrders={activeShipments} />
       </motion.div>
 
+      {/* Tabs Switcher */}
+      <div className="flex gap-2">
+        <button
+          onClick={() => setActiveTab('pool')}
+          className={`px-6 py-2.5 rounded-full text-xs font-black uppercase tracking-widest transition-all ${
+            activeTab === 'pool' ? 'bg-slate-900 text-white shadow-xl shadow-slate-200' : 'bg-white text-slate-500 hover:bg-slate-50 border border-slate-200'
+          }`}
+        >
+          Lojistik Havuzu ({pendingRequests.length})
+        </button>
+        <button
+          onClick={() => setActiveTab('quotes')}
+          className={`px-6 py-2.5 rounded-full text-xs font-black uppercase tracking-widest transition-all ${
+            activeTab === 'quotes' ? 'bg-slate-900 text-white shadow-xl shadow-slate-200' : 'bg-white text-slate-500 hover:bg-slate-50 border border-slate-200'
+          }`}
+        >
+          Tekliflerim ({myQuotes.length})
+        </button>
+      </div>
+
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-        {/* Left: Consolidation Pool Visualization */}
         <motion.div 
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
-          className="xl:col-span-2 space-y-6"
+          className="xl:col-span-2 space-y-8"
         >
-          <div className="flex justify-between items-center px-2">
-            <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-              <Layers className="w-5 h-5 text-sky-600" />
-              Aktif Konteyner Havuzları
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <AnimatePresence mode="wait">
-              <motion.div 
-                layout
-                className="bg-white border-2 border-sky-500/20 rounded-3xl p-6 shadow-sm hover:shadow-md transition-all cursor-pointer relative overflow-hidden"
-              >
-                <div className="flex justify-between mb-6">
-                  <div>
-                    <h3 className="font-bold text-slate-900">Berlin-LCL-24 (Konteyner)</h3>
-                    <p className="text-xs text-slate-500">İstanbul → Berlin</p>
+          <AnimatePresence mode="wait">
+            {activeTab === 'pool' ? (
+              <motion.div key="pool" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-8">
+                {/* Pool Visualization */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="bg-white border-2 border-sky-500/20 rounded-3xl p-6 shadow-sm relative overflow-hidden">
+                    <div className="flex justify-between mb-6">
+                      <div>
+                        <h3 className="font-bold text-slate-900">Berlin-LCL-24</h3>
+                        <p className="text-xs text-slate-500">İstanbul → Berlin</p>
+                      </div>
+                      <StatusBadge status="Beklemede" />
+                    </div>
+                    <div className="h-40 bg-slate-100 rounded-xl relative border-2 border-dashed border-slate-200 overflow-hidden flex items-end">
+                      <motion.div initial={{ height: 0 }} animate={{ height: `${occupancyRate}%` }} className="w-full bg-sky-500/40 relative" />
+                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        <span className="text-sm font-black text-slate-900 bg-white/50 backdrop-blur-sm px-3 py-1 rounded-full border border-white/50 shadow-sm">%{occupancyRate} DOLU</span>
+                      </div>
+                    </div>
+                    <div className="mt-6 flex justify-between items-center">
+                      <span className="text-xs text-slate-500">Kapasite: {capacity.toLocaleString()} kg</span>
+                      <button onClick={() => setShowPoolDetails(true)} className="text-xs font-bold text-sky-600 hover:underline">İçeriği Gör</button>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <StatusBadge status="Beklemede" />
-                    {lastIncrease > 0 && (
-                      <motion.div 
-                        initial={{ opacity: 0, y: 5 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="flex items-center gap-1 text-emerald-600 font-bold text-[10px] mt-1"
-                      >
-                        <ArrowUpRight className="w-3 h-3" /> %{lastIncrease} ARTIŞ
-                      </motion.div>
+                </div>
+
+                <div className="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm">
+                  <div className="p-6 border-b border-slate-100 bg-slate-50/50">
+                    <h3 className="font-bold text-slate-800">Sipariş Alınmış Talepler (Teklif Bekliyor)</h3>
+                  </div>
+                  <div className="divide-y divide-slate-100">
+                    {pendingRequests.length === 0 ? (
+                      <div className="p-12 text-center text-slate-400 italic">Şu an yeni talep bulunmuyor.</div>
+                    ) : (
+                      pendingRequests.map((talep, idx) => (
+                        <div key={talep.id} className="p-6 flex flex-col md:flex-row justify-between items-center hover:bg-slate-50/50 transition-colors">
+                          <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center"><Box className="w-5 h-5 text-slate-400" /></div>
+                            <div>
+                              <p className="text-sm font-bold text-slate-900">{talep.referenceNumber} • {talep.title}</p>
+                              <p className="text-xs font-medium text-slate-500">{talep.exporter.fullName} • {talep.weight} kg • {talep.destinationCity}</p>
+                            </div>
+                          </div>
+                          <Link href={`/lojistik/${talep.id}`} className="mt-4 md:mt-0 px-6 py-2.5 bg-slate-900 text-white rounded-xl text-xs font-black uppercase tracking-widest hover:scale-105 transition-all shadow-lg shadow-slate-200">Teklif Ver</Link>
+                        </div>
+                      ))
                     )}
                   </div>
                 </div>
-
-                {/* Physical Container Visualization */}
-                <div className="h-40 bg-slate-100 rounded-xl relative border-2 border-dashed border-slate-200 overflow-hidden flex items-end">
-                  {/* Visualizing loaded goods */}
-                  <motion.div 
-                    initial={{ height: 0 }}
-                    animate={{ height: `${occupancyRate}%` }}
-                    transition={{ duration: 1, delay: 0.5, type: "spring", damping: 15 }}
-                    className="w-full bg-sky-500/40 backdrop-blur-sm relative"
-                  >
-                    <div className="absolute top-2 left-2 right-2 grid grid-cols-4 gap-1">
-                      {[...Array(8)].map((_, i) => (
-                        <motion.div 
-                          key={i}
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          transition={{ delay: 1 + i * 0.1 }}
-                          className="h-4 bg-white/40 rounded-sm" 
-                        />
-                      ))}
-                    </div>
-                  </motion.div>
-                  
-                  {/* Centered Percentage Text */}
-                  <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
-                    <span className="text-sm font-black text-slate-900 bg-white/50 backdrop-blur-sm px-3 py-1 rounded-full border border-white/50 shadow-sm">
-                      %{occupancyRate} DOLU
-                    </span>
-                  </div>
+              </motion.div>
+            ) : (
+              <motion.div key="quotes" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm">
+                <div className="p-6 border-b border-slate-100 bg-slate-50/50">
+                  <h3 className="font-bold text-slate-800">Verdiğim Teklifler</h3>
                 </div>
-                
-                <div className="mt-6 flex justify-between items-center">
-                  <span className="text-xs text-slate-500">Hedef: {capacity.toLocaleString()} kg / Mevcut: {totalWeight.toLocaleString()} kg</span>
-                  <button 
-                    onClick={() => setShowPoolDetails(true)}
-                    className="text-xs font-bold text-sky-600 hover:underline"
-                  >
-                    Detayları Gör
-                  </button>
+                <div className="divide-y divide-slate-100">
+                  {myQuotes.length === 0 ? (
+                    <div className="p-12 text-center text-slate-400 italic">Henüz bir teklif vermediniz.</div>
+                  ) : (
+                    myQuotes.map((quote, idx) => (
+                      <div key={quote.id} className="p-6 flex justify-between items-center hover:bg-slate-50/50 transition-colors">
+                        <div className="flex items-center gap-4">
+                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${quote.isAccepted ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-400'}`}>
+                            {quote.isAccepted ? <CheckCircle2 className="w-5 h-5" /> : <Clock className="w-5 h-5" />}
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold text-slate-900">{quote.tradeTitle}</p>
+                            <p className="text-xs font-medium text-slate-500">{quote.referenceNumber} • {new Date(quote.createdAt).toLocaleDateString('tr-TR')}</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-lg font-black text-slate-900">${Number(quote.price).toLocaleString()}</p>
+                          <span className={`text-[10px] font-black uppercase tracking-widest ${quote.isAccepted ? 'text-emerald-600' : 'text-amber-500'}`}>
+                            {quote.isAccepted ? 'Kabul Edildi' : 'Yanıt Bekleniyor'}
+                          </span>
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
               </motion.div>
-            </AnimatePresence>
-          </div>
-
-          <div className="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm">
-            <div className="p-6 border-b border-slate-100 flex justify-between items-center">
-              <h3 className="font-bold text-slate-800">Sipariş Alınmış Mikro-Talepler</h3>
-            </div>
-            
-            {isLoading ? (
-              <div className="p-12 text-center text-slate-400">
-                <p className="animate-pulse">Talepler yükleniyor...</p>
-              </div>
-            ) : pendingRequests.length === 0 ? (
-              <div className="p-12 text-center text-slate-400">
-                <p>Şu an sipariş alınmış mikro-talep bulunmuyor.</p>
-              </div>
-            ) : (
-              <div className="divide-y divide-slate-100">
-                {pendingRequests.map((talep, idx) => (
-                  <motion.div 
-                    key={talep.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.1 }}
-                    className="p-6 flex flex-col md:flex-row justify-between items-center hover:bg-slate-50/50 transition-colors"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center">
-                        <Box className="w-5 h-5 text-slate-400" />
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-bold text-slate-900">{talep.referenceNumber}</span>
-                          <StatusBadge status={mapStatus(talep.status)} />
-                        </div>
-                        <p className="text-xs font-medium text-slate-600 mt-1">{talep.exporter.fullName} • {talep.title} ({talep.weight} kg)</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-4 mt-4 md:mt-0">
-                      <div className="text-right hidden md:block">
-                        <p className="text-xs font-bold text-slate-400 uppercase tracking-tighter">{talep._count.quotes} Teklif</p>
-                        <p className="text-xs font-bold text-slate-800">{new Date(talep.createdAt).toLocaleDateString('tr-TR')}</p>
-                      </div>
-                      <Link 
-                        href={`/lojistik/${talep.id}`}
-                        className="px-4 py-2 bg-sky-50 text-sky-700 rounded-xl text-xs font-bold hover:bg-sky-100 transition-colors"
-                      >
-                        İncele & Teklif Ver
-                      </Link>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
             )}
-          </div>
+          </AnimatePresence>
         </motion.div>
 
         {/* Right: Insights & AI Recommendations */}

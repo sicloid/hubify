@@ -7,6 +7,7 @@ export function cn(...inputs: ClassValue[]) {
 
 export type OperationStatus = 
   | 'Beklemede' 
+  | 'Sipariş Verildi'
   | 'Teklif Alındı' 
   | 'Lojistik Onaylandı' 
   | 'Belge Bekliyor'
@@ -23,6 +24,7 @@ interface StatusBadgeProps {
 export function StatusBadge({ status, className }: StatusBadgeProps) {
   const statusStyles: Record<OperationStatus, string> = {
     'Beklemede': 'bg-amber-50 text-amber-700 ring-amber-600/20',
+    'Sipariş Verildi': 'bg-rose-50 text-rose-700 ring-rose-600/20',
     'Teklif Alındı': 'bg-sky-50 text-sky-700 ring-sky-600/20',
     'Lojistik Onaylandı': 'bg-emerald-50 text-emerald-700 ring-emerald-600/20',
     'Belge Bekliyor': 'bg-fuchsia-50 text-fuchsia-700 ring-fuchsia-600/20',
