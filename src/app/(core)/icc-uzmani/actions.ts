@@ -73,7 +73,7 @@ export async function approveDocuments(tradeRequestId: string) {
     
     revalidatePath("/icc-uzmani");
     revalidatePath("/mali-musavir");
-    revalidatePath("/sigorta");
+    revalidatePath("/sigorta", "layout");
     revalidatePath(`/ihracatci/${tradeRequestId}`);
     revalidateTag('trade-requests', { expire: 0 });
     return { success: true };
@@ -160,7 +160,7 @@ export async function finalizeIccReview(tradeRequestId: string) {
 
   revalidatePath("/icc-uzmani");
   revalidatePath("/mali-musavir");
-  revalidatePath("/sigorta");
+  revalidatePath("/sigorta", "layout");
   revalidateTag('trade-requests', { expire: 0 });
 }
 

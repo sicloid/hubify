@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { DocumentType, TradeStatus, UserRole } from "@prisma/client";
 import { BadgeCheck, FileText, Landmark } from "lucide-react";
 import { prisma } from "@/lib/prisma";
@@ -40,9 +41,18 @@ export default async function FinancialAdvPage() {
 
           return (
             <section key={request.id} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-              <div className="mb-4">
-                <h2 className="text-lg font-bold text-slate-900">{request.referenceNumber}</h2>
-                <p className="text-sm text-slate-500">Ihracatci: {request.exporter.fullName}</p>
+              <div className="mb-4 flex flex-wrap items-start justify-between gap-4">
+                <div>
+                  <h2 className="text-lg font-bold text-slate-900">{request.referenceNumber}</h2>
+                  <p className="text-sm text-slate-500">İhracatçı: {request.exporter.fullName}</p>
+                </div>
+                <Link
+                  href={`/mali-musavir/${request.id}`}
+                  className="inline-flex items-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 transition-colors"
+                >
+                  <FileText className="h-4 w-4" />
+                  Detayları İncele
+                </Link>
               </div>
 
               <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
@@ -66,14 +76,20 @@ export default async function FinancialAdvPage() {
                         Goruntule
                       </a>
                       <FileUploadButton
-                        action={uploadInvoice.bind(null, request.id)}
+                        action={async (formData: FormData) => {
+                          "use server";
+                          await uploadInvoice(request.id, formData);
+                        }}
                         buttonLabel="E-Faturayi Degistir"
                         buttonClassName="rounded-lg bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-200"
                       />
                     </div>
                   ) : (
                     <FileUploadButton
-                      action={uploadInvoice.bind(null, request.id)}
+                      action={async (formData: FormData) => {
+                        "use server";
+                        await uploadInvoice(request.id, formData);
+                      }}
                       buttonLabel="E-Fatura Olustur"
                       buttonClassName="rounded-lg bg-slate-900 px-3 py-2 text-xs font-semibold text-white hover:bg-slate-800"
                     />
@@ -100,14 +116,20 @@ export default async function FinancialAdvPage() {
                         Goruntule
                       </a>
                       <FileUploadButton
-                        action={uploadVatReport.bind(null, request.id)}
+                        action={async (formData: FormData) => {
+                          "use server";
+                          await uploadVatReport(request.id, formData);
+                        }}
                         buttonLabel="KDV Dosyasini Degistir"
                         buttonClassName="rounded-lg bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-200"
                       />
                     </div>
                   ) : (
                     <FileUploadButton
-                      action={uploadVatReport.bind(null, request.id)}
+                      action={async (formData: FormData) => {
+                        "use server";
+                        await uploadVatReport(request.id, formData);
+                      }}
                       buttonLabel="KDV Dosyasini Isleme Al"
                       buttonClassName="rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-700"
                     />

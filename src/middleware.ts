@@ -26,7 +26,7 @@ export async function middleware(request: NextRequest) {
         LOGISTICS: "/lojistik",
         ICC_EXPERT: "/icc-uzmani",
         FINANCIAL_ADV: "/mali-musavir",
-        INSURER: "/sigorta",
+        INSURER: "/sigorta/bekleyen",
       };
       targetUrl = roleRoutes[role] || "/";
     } catch (e) {

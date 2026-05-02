@@ -39,7 +39,7 @@ export async function uploadInvoice(tradeRequestId: string, formData: FormData) 
     });
   }
 
-  revalidatePath("/mali-musavir");
+  revalidatePath("/mali-musavir", "layout");
 }
 
 export async function uploadVatReport(tradeRequestId: string, formData: FormData) {
@@ -107,6 +107,6 @@ export async function uploadVatReport(tradeRequestId: string, formData: FormData
     data: { status: TradeStatus.DOCUMENTS_APPROVED },
   });
 
-  revalidatePath("/mali-musavir");
-  revalidatePath("/sigorta");
+  revalidatePath("/mali-musavir", "layout");
+  revalidatePath("/sigorta", "layout");
 }

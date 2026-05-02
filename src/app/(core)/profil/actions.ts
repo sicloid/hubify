@@ -49,7 +49,7 @@ export async function updateProfile(formData: FormData) {
     LOGISTICS: "/lojistik",
     ICC_EXPERT: "/icc-uzmani",
     FINANCIAL_ADV: "/mali-musavir",
-    INSURER: "/sigorta",
+    INSURER: "/sigorta/bekleyen",
   };
   
   if (roleRoutes[user.role]) {

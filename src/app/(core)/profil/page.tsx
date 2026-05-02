@@ -20,7 +20,7 @@ const roleRoutes: Record<string, string> = {
   LOGISTICS: "/lojistik",
   ICC_EXPERT: "/icc-uzmani",
   FINANCIAL_ADV: "/mali-musavir",
-  INSURER: "/sigorta",
+  INSURER: "/sigorta/bekleyen",
 };
 
 export default async function GenericProfilePage() {
@@ -31,7 +31,13 @@ export default async function GenericProfilePage() {
     select: { fullName: true, email: true, role: true },
   });
 
-  if (!user) return null;
+  if (!user) {
+    return (
+      <div className="p-6 bg-red-50 text-red-600 rounded-xl">
+        Hata: Kullanıcı bilgileri veritabanında bulunamadı. Lütfen tekrar giriş yapın.
+      </div>
+    );
+  }
 
   const roleLabel = roleLabels[user.role] || "Kullanıcı";
   const mainRoute = roleRoutes[user.role] || "/";

@@ -40,7 +40,7 @@ export async function loginAction(prevState: any, formData: FormData) {
     LOGISTICS: "/lojistik",
     ICC_EXPERT: "/icc-uzmani",
     FINANCIAL_ADV: "/mali-musavir",
-    INSURER: "/sigorta",
+    INSURER: "/sigorta/bekleyen",
   };
 
   const targetRoute = roleRoutes[user.role] || "/";

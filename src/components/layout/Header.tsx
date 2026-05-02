@@ -5,8 +5,52 @@ import { logoutAction } from "@/lib/auth-actions";
 import { submitSupportTicket } from "@/lib/support-actions";
 import { useRouter } from "next/navigation";
 import { AuthSession } from "@/lib/auth-utils";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+
+const getNotificationsByRole = (role?: string) => {
+  switch (role) {
+    case 'ADMIN':
+      return [
+        { id: 1, text: "Sistem güncellemesi tamamlandı.", time: "10 dk önce", unread: true },
+        { id: 2, text: "Yeni kullanıcı kaydı onay bekliyor.", time: "1 saat önce", unread: true },
+      ];
+    case 'EXPORTER':
+      return [
+        { id: 1, text: "Yeni lojistik teklifi alındı.", time: "5 dk önce", unread: true },
+        { id: 2, text: "Gümrük belgeniz onaylandı.", time: "2 saat önce", unread: false },
+      ];
+    case 'LOGISTICS':
+      return [
+        { id: 1, text: "Yeni kargo talebi atandı.", time: "15 dk önce", unread: true },
+        { id: 2, text: "Konteyner limana ulaştı.", time: "3 saat önce", unread: false },
+      ];
+    case 'ICC_EXPERT':
+      return [
+        { id: 1, text: "Onay bekleyen yeni evrak var.", time: "Hemen şimdi", unread: true },
+        { id: 2, text: "Mevzuat güncellemesi yayınlandı.", time: "1 gün önce", unread: false },
+      ];
+    case 'FINANCIAL_ADV':
+      return [
+        { id: 1, text: "Yeni fatura girişi yapıldı.", time: "20 dk önce", unread: true },
+        { id: 2, text: "Aylık özet raporu hazır.", time: "5 saat önce", unread: false },
+      ];
+    case 'INSURER':
+      return [
+        { id: 1, text: "Yeni poliçe onay bekliyor.", time: "12 dk önce", unread: true },
+        { id: 2, text: "Hasar talebi güncellendi.", time: "1 gün önce", unread: false },
+      ];
+    case 'BUYER':
+      return [
+        { id: 1, text: "Sipariş durumu güncellendi.", time: "15 dk önce", unread: true },
+        { id: 2, text: "Yeni tedarikçi mesajı.", time: "3 saat önce", unread: false },
+      ];
+    default:
+      return [
+        { id: 1, text: "Yeni mesajınız var.", time: "5 dk önce", unread: true },
+      ];
+  }
+};
 
 const roleLabels: Record<string, string> = {
   ADMIN: "Sistem Yöneticisi",
@@ -21,6 +65,21 @@ export default function Header({ session }: { session?: AuthSession | null }) {
   const router = useRouter();
   const [isSupportOpen, setIsSupportOpen] = useState(false);
   const [supportState, setSupportState] = useState<'idle' | 'sending' | 'success'>('idle');
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const notifRef = useRef<HTMLDivElement>(null);
+  
+  const notifications = getNotificationsByRole(session?.role);
+  const hasUnread = notifications.some(n => n.unread);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (notifRef.current && !notifRef.current.contains(event.target as Node)) {
+        setIsNotifOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
   
   const getInitials = (name: string) => {
     if (!name) return "U";
@@ -93,10 +152,57 @@ export default function Header({ session }: { session?: AuthSession | null }) {
           </button>
         )}
 
-        <button className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-lg transition-colors relative">
-          <Bell className="h-5 w-5" />
-          <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500 ring-2 ring-white animate-pulse"></span>
-        </button>
+        <div className="relative" ref={notifRef}>
+          <button 
+            onClick={() => setIsNotifOpen(!isNotifOpen)}
+            className={`p-2 rounded-lg transition-colors relative ${isNotifOpen ? "text-brand-secondary bg-brand-primary/10" : "text-slate-400 hover:text-slate-600 hover:bg-slate-50"}`}
+          >
+            <Bell className="h-5 w-5" />
+            {hasUnread && (
+              <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500 ring-2 ring-white animate-pulse"></span>
+            )}
+          </button>
+
+          <AnimatePresence>
+            {isNotifOpen && (
+              <motion.div 
+                initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                transition={{ duration: 0.15 }}
+                className="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden z-50"
+              >
+                <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                  <h3 className="font-bold text-slate-800 text-sm">Bildirimler</h3>
+                  <span className="text-xs font-semibold text-brand-secondary bg-brand-primary/10 px-2 py-0.5 rounded-full">
+                    {notifications.length} Yeni
+                  </span>
+                </div>
+                <div className="max-h-[320px] overflow-y-auto">
+                  {notifications.map((notif) => (
+                    <div 
+                      key={notif.id} 
+                      className={`p-4 border-b border-slate-50 hover:bg-slate-50 transition-colors cursor-pointer flex gap-3 ${notif.unread ? "bg-brand-primary/5" : ""}`}
+                    >
+                      <div className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${notif.unread ? "bg-brand-secondary" : "bg-slate-300"}`} />
+                      <div>
+                        <p className={`text-sm ${notif.unread ? "font-semibold text-slate-800" : "text-slate-600"}`}>
+                          {notif.text}
+                        </p>
+                        <p className="text-xs text-slate-400 mt-1">{notif.time}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="p-3 bg-slate-50 border-t border-slate-100 text-center">
+                  <button className="text-xs font-bold text-slate-500 hover:text-brand-secondary transition-colors">
+                    Tüm Bildirimleri Gör
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
         
         <div className="h-6 w-px bg-slate-200 hidden sm:block"></div>
 
