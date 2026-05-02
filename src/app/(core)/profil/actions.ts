@@ -1,13 +1,12 @@
 "use server";
 
-import { UserRole } from "@prisma/client";
 import { revalidatePath } from "next/cache";
-import bcrypt from "bcryptjs";
-import { requireRole } from "@/lib/auth-utils";
+import { requireAuth } from "@/lib/auth-utils";
 import { prisma } from "@/lib/prisma";
+import bcrypt from "bcryptjs";
 
-export async function updateFinancialProfile(formData: FormData) {
-  const session = await requireRole([UserRole.FINANCIAL_ADV]);
+export async function updateProfile(formData: FormData) {
+  const session = await requireAuth();
 
   const fullName = String(formData.get("fullName") || "").trim();
   const currentPassword = String(formData.get("currentPassword") || "");
@@ -18,8 +17,9 @@ export async function updateFinancialProfile(formData: FormData) {
 
   const user = await prisma.user.findUnique({
     where: { id: session.id },
-    select: { passwordHash: true },
+    select: { passwordHash: true, role: true },
   });
+
   if (!user) return;
 
   const dataToUpdate: { fullName: string; passwordHash?: string } = { fullName };
@@ -41,6 +41,18 @@ export async function updateFinancialProfile(formData: FormData) {
     data: dataToUpdate,
   });
 
-  revalidatePath("/mali-musavir/profil");
-  revalidatePath("/mali-musavir");
+  revalidatePath("/profil");
+  
+  const roleRoutes: Record<string, string> = {
+    ADMIN: "/admin",
+    EXPORTER: "/ihracatci",
+    LOGISTICS: "/lojistik",
+    ICC_EXPERT: "/icc-uzmani",
+    FINANCIAL_ADV: "/mali-musavir",
+    INSURER: "/sigorta",
+  };
+  
+  if (roleRoutes[user.role]) {
+    revalidatePath(roleRoutes[user.role]);
+  }
 }
