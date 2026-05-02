@@ -43,12 +43,13 @@ enum DocumentType {
 }
 
 model User {
-  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  email     String   @unique
-  fullName  String
-  role      UserRole @default(EXPORTER)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email        String   @unique
+  passwordHash String
+  fullName     String
+  role         UserRole @default(EXPORTER)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   // İlişkiler
   tradeRequests TradeRequest[] @relation("ExporterRequests")
