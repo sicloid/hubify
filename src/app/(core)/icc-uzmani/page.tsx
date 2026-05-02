@@ -1,7 +1,7 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShieldCheck, FileText, CheckCircle2, AlertCircle, Search, Filter, Globe, Ship, ArrowRight, Scale } from "lucide-react";
+import { ShieldCheck, FileText, CheckCircle2, AlertCircle, Search, Filter, Globe, Ship, ArrowRight, Scale, Truck } from "lucide-react";
 import Link from "next/link";
 import { StatusBadge, OperationStatus } from "@/components/operasyon/StatusBadge";
 import { useEffect, useState } from 'react';
@@ -12,7 +12,7 @@ const mapStatus = (status: TradeStatus): OperationStatus => {
   switch (status) {
     case 'LOGISTICS_APPROVED': return 'Lojistik Onaylandı';
     case 'DOCUMENTS_PENDING': return 'Belge Bekliyor';
-    case 'DOCUMENTS_APPROVED': return 'Yola Çıktı';
+    case 'DOCUMENTS_APPROVED': return 'Yolda';
     default: return 'Beklemede';
   }
 };
