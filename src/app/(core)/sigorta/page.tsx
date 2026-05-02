@@ -1,10 +1,6 @@
-import { DocumentType, TradeStatus, UserRole } from "@prisma/client";
-import { CheckCircle2, Radar, ShieldCheck, Truck } from "lucide-react";
-import { prisma } from "@/lib/prisma";
-import { requireRole } from "@/lib/auth-utils";
-import { issuePolicyAndDispatch, markShipmentCompleted } from "./actions";
-import FileUploadButton from "@/components/forms/FileUploadButton";
+import { redirect } from "next/navigation";
 
+<<<<<<< Updated upstream
 export default async function InsurerPage() {
   await requireRole([UserRole.INSURER]);
 
@@ -187,4 +183,8 @@ export default async function InsurerPage() {
 }
     </div>
   );
+=======
+export default function SigortaRootPage() {
+  redirect("/sigorta/bekleyen");
+>>>>>>> Stashed changes
 }
