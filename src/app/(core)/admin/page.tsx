@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import RoleSelect from "./RoleSelect";
 import { UserRole } from "@prisma/client";
 import { Shield, Users as UsersIcon } from "lucide-react";
-import { LiveRadar } from "@/components/admin/LiveRadar";
+import { LiveShipmentMap } from "@/components/admin/LiveShipmentMap";
 import { LiveSystemLogs } from "@/components/admin/LiveSystemLogs";
 
 export default async function AdminPage() {
@@ -31,7 +31,7 @@ export default async function AdminPage() {
 
       {/* Security Dashboards (Radar & Logs) */}
       <section className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full">
-        <LiveRadar />
+        <LiveShipmentMap />
         <LiveSystemLogs />
       </section>
 
