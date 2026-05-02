@@ -50,6 +50,7 @@ model User {
   tradeRequests TradeRequest[] @relation("ExporterRequests")
   quotes        LogisticsQuote[]
   documents     Document[]
+  systemLogs    SystemLog[]
 }
 
 model TradeRequest {
@@ -100,4 +101,15 @@ model Document {
   tradeRequest   TradeRequest @relation(fields: [tradeRequestId], references: [id])
 
   createdAt      DateTime     @default(now())
+}
+
+model SystemLog {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  message   String
+  type      String   // "success", "warning", "info"
+  
+  userId    String?  @db.Uuid
+  user      User?    @relation(fields: [userId], references: [id])
+  
+  createdAt DateTime @default(now())
 }

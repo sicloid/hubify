@@ -3,6 +3,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState } from "react";
 import { Terminal, ShieldAlert, CheckCircle, Clock } from "lucide-react";
+import { getLiveSystemLogs } from "@/app/(core)/admin/actions";
 
 type LogEvent = {
   id: string;
@@ -11,41 +12,24 @@ type LogEvent = {
   time: string;
 };
 
-const INITIAL_LOGS: LogEvent[] = [
-  { id: "1", message: "Sistem başlatıldı. Tüm servisler aktif.", type: "success", time: "00:00:01" },
-  { id: "2", message: "Ahmet İhracatçı sisteme giriş yaptı. (IP: 192.168.1.1)", type: "info", time: "00:02:14" },
-  { id: "3", message: "Lojistik Onayı: #TR-1029 referanslı işlem konteyner havuzuna eklendi.", type: "success", time: "00:05:42" },
-];
-
-const MOCK_EVENTS = [
-  { message: "Gümrük Mühür İşlemi Başarılı: TR-4921", type: "success" as const },
-  { message: "Bilinmeyen kaynaktan yetkisiz erişim denemesi engellendi.", type: "warning" as const },
-  { message: "Yeni Kullanıcı Kaydı: Lojistik A.Ş.", type: "info" as const },
-  { message: "Finansal Onay Verildi: #TR-8812 Sigorta poliçesi oluşturuldu.", type: "success" as const },
-  { message: "ICC Uzmanı belge reddetti: Eksik fatura beyanı.", type: "warning" as const },
-  { message: "Sistem yedeklemesi tamamlandı (421MB).", type: "info" as const },
-];
-
 export function LiveSystemLogs() {
-  const [logs, setLogs] = useState<LogEvent[]>(INITIAL_LOGS);
+  const [logs, setLogs] = useState<LogEvent[]>([]);
+
+  const fetchLogs = async () => {
+    try {
+      const data = await getLiveSystemLogs();
+      setLogs(data);
+    } catch (error) {
+      console.error("Failed to fetch logs:", error);
+    }
+  };
 
   useEffect(() => {
-    // Simulate real-time logs coming in every 3-7 seconds
-    const interval = setInterval(() => {
-      const randomEvent = MOCK_EVENTS[Math.floor(Math.random() * MOCK_EVENTS.length)];
-      const newLog: LogEvent = {
-        id: Math.random().toString(36).substr(2, 9),
-        message: randomEvent.message,
-        type: randomEvent.type,
-        time: new Date().toLocaleTimeString("tr-TR"),
-      };
+    // Initial fetch
+    fetchLogs();
 
-      setLogs((prev) => {
-        const updatedLogs = [newLog, ...prev];
-        return updatedLogs.slice(0, 8); // Keep only the last 8 logs to prevent overflow
-      });
-    }, Math.random() * 4000 + 3000);
-
+    // Poll every 5 seconds
+    const interval = setInterval(fetchLogs, 5000);
     return () => clearInterval(interval);
   }, []);
 
@@ -87,23 +71,27 @@ export function LiveSystemLogs() {
       {/* Log Stream */}
       <div className="flex-1 p-5 overflow-hidden flex flex-col justify-end">
         <div className="space-y-3">
-          <AnimatePresence initial={false}>
-            {logs.map((log) => (
-              <motion.div
-                key={log.id}
-                initial={{ opacity: 0, x: -20, height: 0 }}
-                animate={{ opacity: 1, x: 0, height: "auto" }}
-                exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
-                className={`flex items-start gap-3 p-3 rounded-xl border ${getBgColor(log.type)}`}
-              >
-                <div className="mt-0.5">{getIcon(log.type)}</div>
-                <div className="flex-1">
-                  <p className="text-sm text-slate-300 leading-relaxed">{log.message}</p>
-                  <span className="text-[10px] text-slate-500 mt-1 block tracking-wider">[{log.time}]</span>
-                </div>
-              </motion.div>
-            ))}
-          </AnimatePresence>
+          {logs.length === 0 ? (
+            <div className="text-slate-500 text-sm text-center">Henüz sistem logu bulunmuyor...</div>
+          ) : (
+            <AnimatePresence initial={false}>
+              {logs.map((log) => (
+                <motion.div
+                  key={log.id}
+                  initial={{ opacity: 0, x: -20, height: 0 }}
+                  animate={{ opacity: 1, x: 0, height: "auto" }}
+                  exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
+                  className={`flex items-start gap-3 p-3 rounded-xl border ${getBgColor(log.type)}`}
+                >
+                  <div className="mt-0.5">{getIcon(log.type)}</div>
+                  <div className="flex-1">
+                    <p className="text-sm text-slate-300 leading-relaxed">{log.message}</p>
+                    <span className="text-[10px] text-slate-500 mt-1 block tracking-wider">[{log.time}]</span>
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          )}
         </div>
       </div>
       
@@ -112,3 +100,4 @@ export function LiveSystemLogs() {
     </div>
   );
 }
+

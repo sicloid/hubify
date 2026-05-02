@@ -2,8 +2,34 @@
 
 import { motion } from "framer-motion";
 import { Activity, ShieldCheck, Server, AlertCircle } from "lucide-react";
+import { useEffect, useState } from "react";
+import { getLiveRadarStats } from "@/app/(core)/admin/actions";
 
 export function LiveRadar() {
+  const [stats, setStats] = useState({
+    pending: 0,
+    reviewing: 0,
+    docsPending: 0,
+    inTransit: 0,
+  });
+
+  const fetchStats = async () => {
+    try {
+      const data = await getLiveRadarStats();
+      setStats(data);
+    } catch (error) {
+      console.error("Failed to fetch radar stats:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchStats();
+    const interval = setInterval(fetchStats, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const totalActive = stats.pending + stats.reviewing + stats.docsPending + stats.inTransit;
+
   return (
     <div className="relative w-full h-[400px] bg-slate-900 rounded-3xl overflow-hidden shadow-2xl flex items-center justify-center border border-slate-800">
       {/* Grid Background */}
@@ -37,11 +63,11 @@ export function LiveRadar() {
         <ShieldCheck className="w-8 h-8 text-emerald-400" />
       </div>
 
-      {/* Ping Dots (Simulated Users/Nodes) */}
-      <PingNode top="20%" left="30%" color="bg-sky-400" delay={0.5} label="İhracatçı: 2 Aktif" />
-      <PingNode top="70%" left="25%" color="bg-emerald-400" delay={1.2} label="Lojistik Onayı: 1" />
-      <PingNode top="35%" left="75%" color="bg-amber-400" delay={2.5} label="Gümrük Bekliyor" />
-      <PingNode top="80%" left="65%" color="bg-purple-400" delay={3.1} label="Sigorta İşleniyor" />
+      {/* Ping Dots (Driven by stats) */}
+      {stats.pending > 0 && <PingNode top="20%" left="30%" color="bg-sky-400" delay={0.5} label={`İhracatçı Bekleyen: ${stats.pending}`} />}
+      {stats.reviewing > 0 && <PingNode top="70%" left="25%" color="bg-emerald-400" delay={1.2} label={`Lojistik Sürecinde: ${stats.reviewing}`} />}
+      {stats.docsPending > 0 && <PingNode top="35%" left="75%" color="bg-amber-400" delay={2.5} label={`Gümrük/Belge Bekleyen: ${stats.docsPending}`} />}
+      {stats.inTransit > 0 && <PingNode top="80%" left="65%" color="bg-purple-400" delay={3.1} label={`Yolda Olan: ${stats.inTransit}`} />}
 
       {/* Status Overlay */}
       <div className="absolute top-4 left-4 flex flex-col gap-2">
@@ -55,7 +81,7 @@ export function LiveRadar() {
         </div>
         <div className="flex items-center gap-2 bg-slate-800/80 backdrop-blur-md px-3 py-1.5 rounded-full border border-slate-700">
           <Activity className="w-3.5 h-3.5 text-sky-400" />
-          <span className="text-xs font-medium text-slate-300">24 İşlem/dk</span>
+          <span className="text-xs font-medium text-slate-300">{totalActive} Aktif İşlem</span>
         </div>
       </div>
       
@@ -90,7 +116,7 @@ function PingNode({ top, left, color, delay, label }: { top: string, left: strin
         <motion.div 
           initial={{ opacity: 0, y: 10 }}
           whileHover={{ opacity: 1, y: 0 }}
-          className="absolute left-6 top-1/2 -translate-y-1/2 whitespace-nowrap bg-slate-800 text-white text-xs px-2.5 py-1 rounded-md border border-slate-700 shadow-xl pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity"
+          className="absolute left-6 top-1/2 -translate-y-1/2 whitespace-nowrap bg-slate-800 text-white text-xs px-2.5 py-1 rounded-md border border-slate-700 shadow-xl pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity z-50"
         >
           {label}
         </motion.div>
@@ -98,3 +124,4 @@ function PingNode({ top, left, color, delay, label }: { top: string, left: strin
     </div>
   );
 }
+
