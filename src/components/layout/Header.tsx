@@ -1,11 +1,26 @@
 "use client";
 
-import { LogOut, Bell, Search, Globe } from "lucide-react";
+import { LogOut, Bell, Search, Globe, LifeBuoy } from "lucide-react";
 import { logoutAction } from "@/lib/auth-actions";
 import { useRouter } from "next/navigation";
+import { AuthSession } from "@/lib/auth-utils";
 
-export default function Header() {
+const roleLabels: Record<string, string> = {
+  ADMIN: "Sistem Yöneticisi",
+  EXPORTER: "İhracatçı KOBİ",
+  LOGISTICS: "Lojistik & Taşıyıcı",
+  ICC_EXPERT: "ICC Gümrük Uzmanı",
+  FINANCIAL_ADV: "Mali Müşavir",
+  INSURER: "Sigorta Acentesi"
+};
+
+export default function Header({ session }: { session?: AuthSession | null }) {
   const router = useRouter();
+  
+  const getInitials = (name: string) => {
+    if (!name) return "U";
+    return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+  };
 
   const handleLogout = async () => {
     await logoutAction();
@@ -37,8 +52,11 @@ export default function Header() {
       </div>
 
       <div className="flex items-center gap-3 sm:gap-5">
-        <button className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-brand-secondary/10 text-brand-secondary hover:bg-brand-secondary/20 rounded-lg text-sm font-medium transition-colors">
-          <span className="text-lg leading-none">+</span> Yeni Talep
+        <button 
+          onClick={() => alert("Destek Bildirimi: Sistem yöneticisine hata logu gönderildi!")}
+          className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-lg text-sm font-bold transition-colors border border-rose-100"
+        >
+          <LifeBuoy className="w-4 h-4" /> Destek / Hata Bildir
         </button>
 
         <button className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-lg transition-colors relative">
@@ -50,11 +68,13 @@ export default function Header() {
 
         <div className="flex items-center gap-3">
           <div className="hidden sm:flex flex-col items-end">
-            <span className="text-sm font-semibold text-slate-800 leading-tight">Demo Kullanıcı</span>
-            <span className="text-[10px] font-bold text-brand-primary bg-brand-primary/10 px-1.5 rounded uppercase tracking-wider">Aktif Rol</span>
+            <span className="text-sm font-semibold text-slate-800 leading-tight">{session?.fullName || "Kullanıcı"}</span>
+            <span className="text-[10px] font-bold text-brand-primary bg-brand-primary/10 px-1.5 rounded uppercase tracking-wider">
+              {session?.role ? roleLabels[session.role] : "Yetkisiz"}
+            </span>
           </div>
           <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-brand-primary to-brand-secondary flex items-center justify-center shadow-md text-white font-bold text-sm border-2 border-white">
-            DK
+            {getInitials(session?.fullName || "")}
           </div>
         </div>
 
