@@ -43,5 +43,12 @@ Proje 3 geliştiriciye (ve onların yönettiği AI botlara) bölünmüştür. **
 - **Çalışma Alanı:** `app/(core)/icc-uzmani`, `app/(core)/mali-musavir`, `app/(core)/sigorta`
 - **Kapsam:** Lojistik onayı almış işlemlerin gümrük evrakları yükleme ekranı, fatura yükleme ekranı, sigorta poliçesi onayı. (Kargo talebi, rota belirleme YAZMAYACAKSIN).
 
+## ⚡ 5. PERFORMANS VE CACHING (KRİTİK!)
+Supabase ve veritabanı sorgularındaki yüksek gecikmeyi (latency) önlemek ve projeyi felç etmekten kurtarmak için tüm takım üyeleri aşağıdaki performans kurallarına uymak ZORUNDADIR:
+- **Veri Önbellekleme (Caching):** Next.js App Router'ın güçlü önbellekleme mekanizmalarını kullanın. Ağır sorguları `unstable_cache` veya React `cache` içine alın.
+- **Statik ve Dinamik Render:** Mümkün olan her yerde statik oluşturmayı (Static Rendering) kullanın. Sadece anlık verilere ihtiyaç duyduğunuzda veritabanına gidin.
+- **Revalidation:** Caching yaptıktan sonra, veri değiştiğinde `revalidatePath` veya `revalidateTag` kullanarak önbelleği akıllıca temizleyin.
+- Asla bir bileşeni (Component) her render'da gereksiz veritabanı sorgusu atacak şekilde tasarlamayın.
+
 ## BAŞLANGIÇ TALİMATI
 Eğer bu kuralları anladıysan ve sana atanan Takım/Modülü biliyorsan, bana sadece **"Anlaşıldı. Hubify'ın Mikro-İhracat Konsolidasyonu vizyonunu anladım. Bana atanan [SANA_ATANAN_TAKIM/MODÜL] sınırları içerisinde yoğun animasyonlu ve görsel hikayeli çalışmaya hazırım."** yaz ve sadece kendi alanında çalış.

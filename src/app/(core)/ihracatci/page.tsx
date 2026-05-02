@@ -9,6 +9,7 @@ import { useEffect, useState } from 'react';
 import { getTradeRequests } from './actions';
 import { getPoolStats } from '../lojistik/actions';
 import { TradeStatus } from '@prisma/client';
+import { GlobalTradeRadar } from "@/components/operasyon/GlobalTradeRadar";
 
 // Map Prisma status to OperationStatus
 const mapStatus = (status: TradeStatus): OperationStatus => {
@@ -60,6 +61,19 @@ export default function IhracatciPage() {
           Yeni Mikro-Talep Aç
         </Link>
       </div>
+
+      {/* Global Trade Radar Hero Section */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="w-full"
+      >
+        <GlobalTradeRadar 
+          role="EXPORTER" 
+          activeOrders={talepler.filter(t => ['LOGISTICS_APPROVED', 'DOCUMENTS_PENDING', 'DOCUMENTS_APPROVED', 'IN_TRANSIT'].includes(t.status))} 
+        />
+      </motion.div>
 
       {/* Real-time Container Sync Card */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

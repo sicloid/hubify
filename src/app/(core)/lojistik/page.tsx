@@ -5,8 +5,9 @@ import { Search, Filter, Anchor, Layers, Box, TrendingDown, Users, Ship, ArrowUp
 import Link from "next/link";
 import { StatusBadge, OperationStatus } from "@/components/operasyon/StatusBadge";
 import { useEffect, useState } from 'react';
-import { getAvailableRequests, autoConsolidate } from './actions';
+import { getAvailableRequests, autoConsolidate, getActiveShipments } from './actions';
 import { TradeStatus } from '@prisma/client';
+import { GlobalTradeRadar } from "@/components/operasyon/GlobalTradeRadar";
 
 // Map Prisma status to OperationStatus
 const mapStatus = (status: TradeStatus): OperationStatus => {
@@ -20,14 +21,19 @@ const mapStatus = (status: TradeStatus): OperationStatus => {
 
 export default function LojistikPage() {
   const [talepler, setTalepler] = useState<any[]>([]);
+  const [activeShipments, setActiveShipments] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isConsolidating, setIsConsolidating] = useState(false);
   const [showPoolDetails, setShowPoolDetails] = useState(false);
 
   async function loadData() {
     setIsLoading(true);
-    const data = await getAvailableRequests();
+    const [data, activeData] = await Promise.all([
+      getAvailableRequests(),
+      getActiveShipments()
+    ]);
     setTalepler(data);
+    setActiveShipments(activeData);
     setIsLoading(false);
   }
 
@@ -96,6 +102,16 @@ export default function LojistikPage() {
         >
           <Ship size={400} />
         </motion.div>
+      </motion.div>
+
+      {/* Global Trade Radar Hero Section */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+        className="w-full"
+      >
+        <GlobalTradeRadar role="LOGISTICS" activeOrders={activeShipments} />
       </motion.div>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
