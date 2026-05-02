@@ -1,0 +1,26 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  
+  --color-brand-primary: #0F172A; /* Slate 900 / Deep Navy */
+  --color-brand-secondary: #0284C7; /* Sky 600 */
+  --color-brand-accent: #10B981; /* Emerald 500 */
+}
+
+:root {
+  --background: #f8fafc; /* Slate 50 */
+  --foreground: #0f172a; /* Slate 900 */
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+/* Base resets or common component overrides for Premium SaaS feel */
+.glass-panel {
+  @apply bg-white/70 backdrop-blur-md border border-white/20 shadow-sm;
+}
