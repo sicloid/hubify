@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import { UserRole } from "@prisma/client";
+import { usePathname } from "next/navigation";
 import { 
   LayoutDashboard, 
   Users, 
@@ -8,9 +11,14 @@ import {
   Package, 
   ShieldCheck, 
   Landmark, 
-  ShieldAlert
+  ShieldAlert,
+  ChevronRight,
+  BarChart,
+  Settings,
+  Files
 } from "lucide-react";
 import { AuthSession } from "@/lib/auth-utils";
+import { motion } from "framer-motion";
 
 interface SidebarProps {
   session: AuthSession;
@@ -18,6 +26,7 @@ interface SidebarProps {
 
 export default function Sidebar({ session }: SidebarProps) {
   const { role } = session;
+  const pathname = usePathname();
 
   const roleRoutes: Record<string, string> = {
     ADMIN: "/admin",
@@ -40,43 +49,130 @@ export default function Sidebar({ session }: SidebarProps) {
   const mainRoute = roleRoutes[role] || "/";
   const mainName = roleNames[role] || "Ana Panel";
 
+  const isMainActive = pathname === mainRoute;
+  const isAdminUsersActive = pathname === "/admin";
+
   return (
-    <aside className="w-64 bg-brand-primary text-white flex flex-col min-h-screen">
-      <div className="h-16 flex items-center px-6 border-b border-white/10">
-        <h1 className="text-xl font-bold tracking-tight">Hubify</h1>
+    <motion.aside 
+      initial={{ x: -100, opacity: 0 }}
+      animate={{ x: 0, opacity: 1 }}
+      transition={{ duration: 0.5, ease: "easeOut" }}
+      className="w-64 bg-slate-900 text-white flex flex-col min-h-screen border-r border-slate-800"
+    >
+      <div className="h-16 flex items-center px-6 border-b border-white/5 relative overflow-hidden">
+        <motion.div 
+          animate={{ x: [0, 100, 0] }}
+          transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+          className="absolute top-0 left-0 w-1/2 h-[1px] bg-gradient-to-r from-transparent via-brand-secondary to-transparent"
+        />
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 bg-brand-primary rounded-lg flex items-center justify-center shadow-lg shadow-brand-primary/20">
+            <ShieldCheck className="w-5 h-5 text-brand-secondary" />
+          </div>
+          <h1 className="text-xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">Hubify</h1>
+        </div>
       </div>
 
-      <nav className="flex-1 py-6 px-3 space-y-1">
-        <Link 
-          href={mainRoute} 
-          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium bg-white/10 hover:bg-white/20 transition-colors"
-        >
-          <LayoutDashboard className="h-5 w-5 text-brand-secondary" />
-          {mainName}
+      <nav className="flex-1 py-6 px-4 space-y-1 overflow-y-auto">
+        <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3 px-3">
+          Ana Ekran
+        </div>
+
+        <Link href={mainRoute} className="block relative mb-6">
+          {isMainActive && (
+            <motion.div 
+              layoutId="activeTab"
+              className="absolute inset-0 bg-brand-primary/20 border border-brand-primary/30 rounded-xl"
+              initial={false}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            />
+          )}
+          <motion.div 
+            whileHover={{ x: 5 }}
+            className={`flex items-center justify-between px-3 py-2.5 rounded-xl relative z-10 transition-colors ${isMainActive ? 'text-white' : 'text-slate-400 hover:text-slate-200'}`}
+          >
+            <div className="flex items-center gap-3">
+              <LayoutDashboard className={`h-5 w-5 ${isMainActive ? 'text-brand-secondary' : 'text-slate-500'}`} />
+              <span className="text-sm font-medium">{mainName}</span>
+            </div>
+            {isMainActive && <ChevronRight className="w-4 h-4 text-brand-secondary opacity-50" />}
+          </motion.div>
+        </Link>
+
+        <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3 px-3 mt-6">
+          Modüller
+        </div>
+
+        {[
+          { name: "Taleplerim", icon: FileText, route: "#talepler" },
+          { name: "Kargo & Lojistik", icon: Truck, route: "#lojistik" },
+          { name: "Gümrük Belgeleri", icon: Files, route: "#belgeler" },
+          { name: "Fatura & Finans", icon: Landmark, route: "#finans" },
+        ].map((item, idx) => (
+          <Link key={idx} href={item.route} className="block group">
+            <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:text-slate-200 hover:bg-white/5 transition-all">
+              <item.icon className="h-5 w-5 text-slate-500 group-hover:text-slate-300" />
+              <span className="text-sm font-medium">{item.name}</span>
+            </div>
+          </Link>
+        ))}
+
+        <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3 px-3 mt-8">
+          Sistem
+        </div>
+
+        <Link href="#raporlar" className="block group">
+          <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:text-slate-200 hover:bg-white/5 transition-all">
+            <BarChart className="h-5 w-5 text-slate-500 group-hover:text-slate-300" />
+            <span className="text-sm font-medium">Raporlar & Analiz</span>
+          </div>
         </Link>
 
         {role === "ADMIN" && (
-          <Link 
-            href="/admin" 
-            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-white/10 transition-colors mt-2"
-          >
-            <Users className="h-5 w-5 text-brand-secondary" />
-            Kullanıcı Yönetimi
+          <Link href="/admin" className="block relative">
+            {isAdminUsersActive && !isMainActive && (
+              <motion.div 
+                layoutId="activeTab"
+                className="absolute inset-0 bg-brand-primary/20 border border-brand-primary/30 rounded-xl"
+                initial={false}
+                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              />
+            )}
+            <motion.div 
+              whileHover={{ x: 5 }}
+              className={`flex items-center justify-between px-3 py-2.5 rounded-xl relative z-10 transition-colors ${isAdminUsersActive && !isMainActive ? 'text-white' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'}`}
+            >
+              <div className="flex items-center gap-3">
+                <Users className={`h-5 w-5 ${isAdminUsersActive && !isMainActive ? 'text-brand-secondary' : 'text-slate-500'}`} />
+                <span className="text-sm font-medium">Kullanıcı Yönetimi</span>
+              </div>
+              {isAdminUsersActive && !isMainActive && <ChevronRight className="w-4 h-4 text-brand-secondary opacity-50" />}
+            </motion.div>
           </Link>
         )}
+
+        <Link href="#ayarlar" className="block group">
+          <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:text-slate-200 hover:bg-white/5 transition-all">
+            <Settings className="h-5 w-5 text-slate-500 group-hover:text-slate-300" />
+            <span className="text-sm font-medium">Sistem Ayarları</span>
+          </div>
+        </Link>
       </nav>
 
-      <div className="p-4 border-t border-white/10">
-        <div className="flex items-center gap-3 px-3 py-2 bg-white/5 rounded-lg">
-          <div className="h-8 w-8 rounded-full bg-brand-secondary flex items-center justify-center text-brand-primary font-bold">
+      <div className="p-4 border-t border-white/5 bg-slate-900/50">
+        <motion.div 
+          whileHover={{ scale: 1.02 }}
+          className="flex items-center gap-3 px-3 py-2 bg-slate-800 rounded-xl border border-slate-700 shadow-inner"
+        >
+          <div className="h-9 w-9 rounded-full bg-brand-primary/20 border border-brand-primary/50 flex items-center justify-center text-brand-secondary font-bold shadow-[0_0_10px_rgba(14,165,233,0.2)]">
             {session.fullName.charAt(0)}
           </div>
-          <div className="flex flex-col">
-            <span className="text-sm font-medium leading-none truncate">{session.fullName}</span>
-            <span className="text-xs text-brand-secondary mt-1">{role}</span>
+          <div className="flex flex-col overflow-hidden">
+            <span className="text-sm font-medium leading-none truncate text-slate-200">{session.fullName}</span>
+            <span className="text-[11px] text-brand-secondary/80 mt-1.5 font-medium tracking-wide uppercase">{role}</span>
           </div>
-        </div>
+        </motion.div>
       </div>
-    </aside>
+    </motion.aside>
   );
 }
