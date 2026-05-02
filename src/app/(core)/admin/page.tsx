@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import RoleSelect from "./RoleSelect";
 import { UserRole } from "@prisma/client";
 import { Shield, Users as UsersIcon } from "lucide-react";
+import { LiveRadar } from "@/components/admin/LiveRadar";
 
 export default async function AdminPage() {
   // 1. Guard Katmanı: Sadece ADMIN girebilir
@@ -16,16 +17,21 @@ export default async function AdminPage() {
   const roles = Object.values(UserRole);
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
+    <div className="max-w-6xl mx-auto space-y-8">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
             <Shield className="h-6 w-6 text-brand-secondary" />
-            Sistem Yönetimi
+            Sistem Yönetimi & Güvenlik Radarı
           </h1>
-          <p className="text-slate-500 text-sm mt-1">Platformdaki tüm kullanıcıları ve yetkilerini yönetin.</p>
+          <p className="text-slate-500 text-sm mt-1">Platformdaki tüm operasyonları ve kullanıcı yetkilerini yönetin.</p>
         </div>
       </div>
+
+      {/* Animated Live Radar Component */}
+      <section className="w-full">
+        <LiveRadar />
+      </section>
 
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
         <div className="px-6 py-4 border-b border-slate-200 bg-slate-50 flex items-center gap-2">
