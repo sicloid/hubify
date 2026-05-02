@@ -58,6 +58,7 @@ model TradeRequest {
   title           String
   description     String?
   status          TradeStatus  @default(PENDING)
+  weight          Float        @default(0)
   
   exporterId      String       @db.Uuid
   exporter        User         @relation("ExporterRequests", fields: [exporterId], references: [id])

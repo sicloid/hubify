@@ -19,6 +19,25 @@ export function BentoGrid({
   );
 }
 
+export function BentoCard({
+  className,
+  children,
+}: {
+  className?: string;
+  children?: React.ReactNode;
+}) {
+  return (
+    <div
+      className={cn(
+        "rounded-2xl p-6 bg-white border border-slate-200 shadow-sm hover:shadow-md transition-all duration-300",
+        className
+      )}
+    >
+      {children}
+    </div>
+  );
+}
+
 export function BentoGridItem({
   className,
   title,
@@ -59,3 +78,4 @@ export function BentoGridItem({
     </div>
   );
 }
+
