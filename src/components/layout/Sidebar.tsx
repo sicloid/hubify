@@ -27,12 +27,7 @@ interface SidebarProps {
 export default function Sidebar({ session }: SidebarProps) {
   const { role } = session;
   const pathname = usePathname();
-  const profileRouteByRole: Partial<Record<UserRole, string>> = {
-    ICC_EXPERT: "/icc-uzmani/profil",
-    FINANCIAL_ADV: "/mali-musavir/profil",
-    INSURER: "/sigorta/profil",
-  };
-  const profileRoute = profileRouteByRole[role];
+  const profileRoute = "/profil";
 
   const roleRoutes: Record<string, string> = {
     ADMIN: "/admin",

@@ -1,12 +1,30 @@
 import Link from "next/link";
 import { UserRole } from "@prisma/client";
 import { ArrowLeft, BadgeCheck, KeyRound, Mail, UserCircle2 } from "lucide-react";
-import { requireRole } from "@/lib/auth-utils";
+import { requireAuth } from "@/lib/auth-utils";
 import { prisma } from "@/lib/prisma";
-import { updateIccProfile } from "./actions";
+import { updateProfile } from "./actions";
 
-export default async function IccProfilePage() {
-  const session = await requireRole([UserRole.ICC_EXPERT]);
+const roleLabels: Record<string, string> = {
+  ADMIN: "Yönetici",
+  EXPORTER: "İhracatçı",
+  LOGISTICS: "Lojistik Uzmanı",
+  ICC_EXPERT: "ICC Uzmanı",
+  FINANCIAL_ADV: "Mali Müşavir",
+  INSURER: "Sigorta Uzmanı",
+};
+
+const roleRoutes: Record<string, string> = {
+  ADMIN: "/admin",
+  EXPORTER: "/ihracatci",
+  LOGISTICS: "/lojistik",
+  ICC_EXPERT: "/icc-uzmani",
+  FINANCIAL_ADV: "/mali-musavir",
+  INSURER: "/sigorta",
+};
+
+export default async function GenericProfilePage() {
+  const session = await requireAuth();
 
   const user = await prisma.user.findUnique({
     where: { id: session.id },
@@ -15,6 +33,9 @@ export default async function IccProfilePage() {
 
   if (!user) return null;
 
+  const roleLabel = roleLabels[user.role] || "Kullanıcı";
+  const mainRoute = roleRoutes[user.role] || "/";
+
   return (
     <div className="space-y-6">
       <section className="rounded-3xl border border-slate-200 bg-slate-900 p-6 text-white shadow-sm">
@@ -22,24 +43,24 @@ export default async function IccProfilePage() {
           <div>
             <h1 className="flex items-center gap-2 text-2xl font-bold">
               <UserCircle2 className="h-6 w-6 text-sky-300" />
-              ICC Uzmanı Profil Ayarı
+              {roleLabel} Profil Ayarı
             </h1>
             <p className="mt-2 text-sm text-slate-300">
-              Profil bilgilerinizi güncelleyip denetim kimliğinizi güncel tutun.
+              Profil bilgilerinizi ve şifrenizi güvenli bir şekilde güncelleyin.
             </p>
           </div>
           <Link
-            href="/icc-uzmani"
+            href={mainRoute}
             className="inline-flex items-center gap-1 rounded-lg bg-white/10 px-3 py-2 text-xs font-semibold text-white hover:bg-white/20"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
-            ICC Paneline Don
+            Ana Panele Dön
           </Link>
         </div>
       </section>
 
       <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-        <form action={updateIccProfile} className="space-y-5">
+        <form action={updateProfile} className="space-y-5">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="rounded-xl border border-slate-200 p-4">
               <label className="mb-2 block text-sm font-semibold text-slate-800">Ad Soyad</label>
@@ -91,7 +112,7 @@ export default async function IccProfilePage() {
           </div>
 
           <div className="flex items-center justify-between rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3">
-            <p className="text-sm text-emerald-800">Profil değişiklikleri ICC panelinde anında görünür.</p>
+            <p className="text-sm text-emerald-800">Profil değişiklikleri sistem genelinde anında uygulanır.</p>
             <button
               type="submit"
               className="inline-flex items-center gap-1 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
