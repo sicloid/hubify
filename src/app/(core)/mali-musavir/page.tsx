@@ -153,6 +153,7 @@ export default async function FinancialAdvPage() {
           <div className="p-12 border-2 border-dashed border-slate-200 rounded-3xl text-center text-slate-400 font-bold uppercase tracking-widest text-xs">Bekleyen işlem bulunmuyor</div>
         )}
       </div>
+      </div>
 
       {/* Completed History */}
       <div className="space-y-4">
@@ -170,7 +171,6 @@ export default async function FinancialAdvPage() {
                 <div>
                   <p className="font-black text-slate-900">{request.referenceNumber}</p>
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">İhracatçı: {request.exporter.fullName} • {request.status}</p>
-                </div>
                 </div>
               </div>
               <div className="text-right">
