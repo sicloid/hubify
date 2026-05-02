@@ -9,7 +9,7 @@ export async function getIccRequests() {
   await requireRole([UserRole.ICC_EXPERT, UserRole.ADMIN]);
   
   try {
-    return await prisma.tradeRequest.findMany({
+    const requests = await prisma.tradeRequest.findMany({
       where: {
         status: {
           in: [TradeStatus.LOGISTICS_APPROVED, TradeStatus.DOCUMENTS_PENDING, TradeStatus.DOCUMENTS_APPROVED]
@@ -35,6 +35,14 @@ export async function getIccRequests() {
         updatedAt: 'desc'
       }
     });
+
+    return requests.map(request => ({
+      ...request,
+      quotes: request.quotes.map(q => ({
+        ...q,
+        price: Number(q.price)
+      }))
+    }));
   } catch (error) {
     console.error("ICC talepleri çekilirken hata:", error);
     return [];
