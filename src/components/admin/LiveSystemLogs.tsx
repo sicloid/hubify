@@ -18,7 +18,7 @@ export function LiveSystemLogs() {
   const fetchLogs = async () => {
     try {
       const data = await getLiveSystemLogs();
-      setLogs(data);
+      setLogs(data as LogEvent[]);
     } catch (error) {
       console.error("Failed to fetch logs:", error);
     }

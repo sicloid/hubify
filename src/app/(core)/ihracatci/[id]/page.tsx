@@ -13,7 +13,7 @@ const mapStatus = (status: TradeStatus): OperationStatus => {
     case 'PENDING': return 'Beklemede';
     case 'QUOTING': return 'Teklif Alındı';
     case 'LOGISTICS_APPROVED': return 'Lojistik Onaylandı';
-    case 'DOCUMENTS_APPROVED': return 'Yola Çıktı';
+    case 'DOCUMENTS_APPROVED': return 'Yolda';
     case 'IN_TRANSIT': return 'Yolda';
     case 'COMPLETED': return 'Tamamlandı';
     default: return 'Beklemede';
@@ -61,7 +61,7 @@ export default function ExporterTalepDetayPage({ params: paramsPromise }: { para
     return <div className="p-20 text-center text-slate-400">Talep bulunamadı veya yetkiniz yok.</div>;
   }
 
-  const currentStepIndex = trackingSteps.findIndex(step => step.statuses.includes(talep.status));
+  const currentStepIndex = trackingSteps.findIndex(step => (step.statuses as TradeStatus[]).includes(talep.status));
   const acceptedQuote = talep.quotes.find((q: any) => q.isAccepted);
 
   // Mock location and ETA based on status

@@ -9,7 +9,7 @@ import { motion } from "framer-motion";
 export default function RegisterPage() {
   const [state, formAction, isPending] = useActionState(registerAction, null);
 
-  const containerVariants = {
+  const containerVariants: any = {
     hidden: { opacity: 0, y: 50 },
     visible: { 
       opacity: 1, 
