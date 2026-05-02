@@ -51,8 +51,17 @@ export function GlobalTradeRadar({ role, activeOrders = [] }: RadarProps) {
     setMounted(true);
   }, []);
 
-  // Map each active order to a deterministic destination and hub
-  const mappedOrders = activeOrders.map((order) => {
+  // Demo fallback to ensure map is never empty during presentation
+  const isDemoMode = activeOrders.length === 0;
+  
+  const displayOrders = isDemoMode ? [
+    { id: "demo-1", referenceNumber: "HUB-9901", title: "Otomotiv Yedek Parça", status: "IN_TRANSIT" },
+    { id: "demo-2", referenceNumber: "HUB-9902", title: "Tekstil Ürünleri", status: "IN_TRANSIT" },
+    { id: "demo-3", referenceNumber: "HUB-9903", title: "Elektronik Aksam", status: "IN_TRANSIT" }
+  ] : activeOrders;
+
+  // Map each order to a deterministic destination and hub
+  const mappedOrders = displayOrders.map((order) => {
     const hash = hashString(order.id);
     const dest = DESTINATIONS[hash % DESTINATIONS.length];
     
@@ -122,14 +131,21 @@ export function GlobalTradeRadar({ role, activeOrders = [] }: RadarProps) {
           ))}
 
           {/* Active Routes */}
-          {mappedOrders.map((mapped, index) => {
-            const { dest, hubName, order } = mapped;
+          {Object.values(
+            mappedOrders.reduce((acc, mapped) => {
+              const routeKey = `${mapped.hubName}-${mapped.dest.name}`;
+              if (!acc[routeKey]) acc[routeKey] = { ...mapped, count: 0 };
+              acc[routeKey].count += 1;
+              return acc;
+            }, {} as Record<string, typeof mappedOrders[0] & { count: number }>)
+          ).map((mapped, index) => {
+            const { dest, hubName } = mapped;
             const hubCoords = HUBS[hubName];
             const isHighRisk = dest.risk === "Yüksek";
             const lineColor = isHighRisk ? "#f43f5e" : "#10b981"; // Rose for high risk, emerald for normal
 
             return (
-              <g key={order.id}>
+              <g key={`${hubName}-${dest.name}`}>
                 {/* Route Track */}
                 <Line
                   from={hubCoords}
@@ -187,12 +203,17 @@ export function GlobalTradeRadar({ role, activeOrders = [] }: RadarProps) {
 
       {/* Live Data Overlays */}
       <div className="absolute bottom-6 left-6 flex flex-col gap-3 pointer-events-none">
-        <div className="bg-slate-900/60 backdrop-blur-xl p-4 rounded-2xl border border-slate-700 shadow-2xl flex items-center gap-4">
+        <div className="bg-slate-900/60 backdrop-blur-xl p-4 rounded-2xl border border-slate-700 shadow-2xl flex items-center gap-4 relative overflow-hidden">
+          {isDemoMode && (
+            <div className="absolute top-0 left-0 w-full h-1 bg-amber-500 animate-pulse" />
+          )}
           <div className="p-3 bg-emerald-500/20 rounded-xl border border-emerald-500/30">
             <Ship className="w-6 h-6 text-emerald-400" />
           </div>
           <div>
-            <p className="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1">Aktif Transit</p>
+            <p className="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1">
+              {isDemoMode ? "SİMÜLASYON AKTİF" : "Aktif Transit"}
+            </p>
             <p className="text-2xl font-black text-white flex items-baseline gap-2">
               {inTransitCount} <span className="text-xs font-semibold text-emerald-400 bg-emerald-400/10 px-2 py-1 rounded-full border border-emerald-500/20">Hareket Halinde</span>
             </p>
@@ -242,10 +263,6 @@ export function GlobalTradeRadar({ role, activeOrders = [] }: RadarProps) {
               </div>
             </motion.div>
           ))}
-          
-          {mappedOrders.length === 0 && (
-             <div className="text-xs text-slate-500 italic mt-4">Aktif sevkiyat bulunmuyor...</div>
-          )}
         </AnimatePresence>
       </div>
 
