@@ -134,8 +134,8 @@ export default function Sidebar({ session }: SidebarProps) {
           className="absolute top-0 left-0 w-1/2 h-[1px] bg-gradient-to-r from-transparent via-brand-secondary to-transparent"
         />
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-brand-primary rounded-lg flex items-center justify-center shadow-lg shadow-brand-primary/20">
-            <ShieldCheck className="w-5 h-5 text-brand-secondary" />
+          <div className="w-8 h-8 rounded-lg overflow-hidden shadow-lg shadow-brand-primary/20">
+            <img src="/hubify-logo.png" alt="Hubify" className="w-full h-full object-cover" />
           </div>
           <h1 className="text-xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">Hubify</h1>
         </div>

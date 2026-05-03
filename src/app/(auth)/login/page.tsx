@@ -121,9 +121,9 @@ export default function LoginPage() {
                 initial={{ rotate: -180, opacity: 0 }}
                 animate={{ rotate: 0, opacity: 1 }}
                 transition={{ duration: 0.8, type: "spring" }}
-                className="w-16 h-16 bg-brand-primary rounded-2xl mx-auto mb-4 flex items-center justify-center shadow-lg shadow-brand-primary/30"
+                className="w-16 h-16 rounded-2xl mx-auto mb-4 overflow-hidden shadow-lg shadow-brand-primary/30"
               >
-                <Globe className="w-8 h-8 text-white" />
+                <img src="/hubify-logo.png" alt="Hubify" className="w-full h-full object-cover" />
               </motion.div>
               <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight mb-2">Hubify</h1>
               <p className="text-sm text-slate-500 font-medium">Küçük İşletmeler İçin Global Ağ</p>

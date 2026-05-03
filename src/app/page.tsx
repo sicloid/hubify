@@ -96,8 +96,8 @@ export default function HubifyLandingPage() {
         <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
           <div className="flex items-center gap-8">
             <Link href="/" className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-brand-primary rounded-lg flex items-center justify-center shadow-lg shadow-brand-primary/20">
-                <Globe className="w-5 h-5 text-white" />
+              <div className="w-8 h-8 rounded-lg overflow-hidden shadow-lg shadow-brand-primary/20">
+                <img src="/hubify-logo.png" alt="Hubify" className="w-full h-full object-cover" />
               </div>
               <span className="font-bold text-lg tracking-tight text-slate-800">
                 Hubify<span className="text-brand-secondary">.</span>
@@ -416,7 +416,7 @@ export default function HubifyLandingPage() {
           <div className="flex flex-col md:flex-row items-start justify-between gap-8 mb-10">
             <div>
               <span className="font-bold text-slate-900 flex items-center gap-2 mb-2">
-                <Anchor className="h-4 w-4" /> Hubify
+                <img src="/hubify-logo.png" alt="Hubify" className="h-5 w-5 rounded" /> Hubify
               </span>
               <p className="text-xs text-slate-400 max-w-xs leading-relaxed">
                 Esnaf ve KOBİ&apos;ler için mikro-ihracat operasyon platformu.
