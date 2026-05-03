@@ -2,7 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth-utils";
-import { TradeStatus, UserRole } from "@prisma/client";
+import { TicketStatus as SupportTicketStatusEnum, TradeStatus, UserRole } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 
 export async function updateUserRole(userId: string, newRole: UserRole) {
@@ -84,27 +84,66 @@ export async function getLiveRadarStats() {
   }
 }
 
+export async function updateSupportTicketStatus(
+  ticketId: string,
+  status: "OPEN" | "IN_PROGRESS" | "RESOLVED",
+) {
+  await requireAdmin();
+
+  if (!ticketId?.trim()) {
+    return { success: false as const, error: "Geçersiz kayıt." };
+  }
+
+  try {
+    await prisma.supportTicket.update({
+      where: { id: ticketId },
+      data: { status: status as SupportTicketStatusEnum },
+    });
+    revalidatePath("/admin/destek-ve-hata-bildirileri");
+    revalidatePath("/admin");
+    return { success: true as const };
+  } catch (e) {
+    console.error("updateSupportTicketStatus", e);
+    return { success: false as const, error: "Durum güncellenemedi." };
+  }
+}
+
 export async function getSupportTickets() {
   await requireAdmin();
 
   try {
     const tickets = await prisma.supportTicket.findMany({
       orderBy: { createdAt: "desc" },
-      take: 20,
+      take: 100,
       include: {
         user: {
-          select: { fullName: true, role: true }
-        }
-      }
+          select: { fullName: true, role: true, email: true },
+        },
+      },
     });
 
-    return tickets.map(ticket => ({
+    const fmt = (d: Date) =>
+      d.toLocaleString("tr-TR", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+      });
+
+    return tickets.map((ticket) => ({
       id: ticket.id,
       type: ticket.type,
       description: ticket.description,
       status: ticket.status,
-      time: ticket.createdAt.toLocaleTimeString("tr-TR", { hour: '2-digit', minute: '2-digit' }),
-      user: ticket.user ? `${ticket.user.fullName} (${ticket.user.role})` : "Anonim"
+      createdAtLabel: fmt(ticket.createdAt),
+      updatedAtLabel: fmt(ticket.updatedAt),
+      user: ticket.user ? `${ticket.user.fullName} (${ticket.user.role})` : "Anonim",
+      userFullName: ticket.user?.fullName ?? null,
+      userRole: ticket.user?.role ?? null,
+      userEmail: ticket.user?.email ?? null,
+      userId: ticket.userId,
     }));
   } catch (error) {
     console.error("Fetch support tickets error:", error);

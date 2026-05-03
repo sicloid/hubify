@@ -6,10 +6,9 @@ import { ArrowLeft, CheckCircle2, DollarSign, Info, MapPin, Box, TrendingDown, S
 import Link from "next/link";
 import { StatusBadge, OperationStatus } from "@/components/operasyon/StatusBadge";
 import { createQuote, getRequestDetail, getPoolStats } from '../actions';
-import { TradeStatus } from '@prisma/client';
 
-// Map Prisma status to OperationStatus
-const mapStatus = (status: TradeStatus): OperationStatus => {
+// Map Prisma status to OperationStatus (istemcide @prisma/client yok)
+const mapStatus = (status: string): OperationStatus => {
   switch (status) {
     case 'PENDING': return 'Beklemede';
     case 'QUOTING': return 'Teklif Alındı';
@@ -71,7 +70,7 @@ export default function LojistikTeklifDetayPage({ params: paramsPromise }: { par
   const currentOccupancy = poolStats?.occupancyRate || 0;
   const requestWeight = talep.weight || 0;
   const newOccupancy = poolStats ? Math.min(Math.round(((poolStats.totalWeight + requestWeight) / poolStats.capacity) * 100), 100) : 0;
-  const isAlreadyInPool = talep.status !== TradeStatus.PENDING;
+  const isAlreadyInPool = talep.status !== "PENDING";
 
   return (
     <div className="max-w-6xl mx-auto p-8 pb-20">

@@ -5,8 +5,9 @@ import { motion } from 'framer-motion';
 import { 
   Package, ShoppingCart, Truck, ShieldCheck, Landmark, 
   Search, Filter, Clock, MapPin, User, ChevronRight,
-  Stamp
+  Stamp, LifeBuoy,
 } from 'lucide-react';
+import BuyerSupportDialog from '@/components/support/BuyerSupportDialog';
 
 interface TaleplerimClientProps {
   initialData: any[];
@@ -15,6 +16,7 @@ interface TaleplerimClientProps {
 
 export default function TaleplerimClient({ initialData, userRole }: TaleplerimClientProps) {
   const [searchTerm, setSearchTerm] = useState('');
+  const [supportOpen, setSupportOpen] = useState(false);
 
   const getPageTitle = () => {
     switch (userRole) {
@@ -66,7 +68,17 @@ export default function TaleplerimClient({ initialData, userRole }: TaleplerimCl
           </motion.div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          {userRole === 'BUYER' && (
+            <button
+              type="button"
+              onClick={() => setSupportOpen(true)}
+              className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl font-bold text-sm bg-rose-50 text-rose-700 border border-rose-100 hover:bg-rose-100 transition-colors shadow-sm"
+            >
+              <LifeBuoy className="w-4 h-4 shrink-0" />
+              Destek Talebi Oluştur
+            </button>
+          )}
           <div className="relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <input 
@@ -77,7 +89,7 @@ export default function TaleplerimClient({ initialData, userRole }: TaleplerimCl
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <button className="p-3 bg-white border border-slate-200 rounded-2xl hover:bg-slate-50 transition-colors">
+          <button type="button" className="p-3 bg-white border border-slate-200 rounded-2xl hover:bg-slate-50 transition-colors">
             <Filter className="w-4 h-4 text-slate-600" />
           </button>
         </div>
@@ -110,7 +122,8 @@ export default function TaleplerimClient({ initialData, userRole }: TaleplerimCl
                 <div 
                   onClick={() => {
                     let detailUrl = '#';
-                    if (userRole === 'EXPORTER') detailUrl = `/ihracatci/${item.referenceNumber || item.id}`;
+                    // ihracatci detay sayfası trade UUID ile yüklenir (referenceNumber Prisma id değil)
+                    if (userRole === 'EXPORTER') detailUrl = `/ihracatci/${item.id}`;
                     else if (userRole === 'BUYER') detailUrl = `/pazaryeri/${item.id}`;
                     else if (userRole === 'LOGISTICS') detailUrl = `/lojistik/${item.referenceNumber || item.id}`;
                     else if (userRole === 'ICC_EXPERT' || userRole === 'FINANCIAL_ADV') detailUrl = `/taleplerim/${item.id}`;
@@ -172,6 +185,11 @@ export default function TaleplerimClient({ initialData, userRole }: TaleplerimCl
       {/* Decorative Elements */}
       <div className="fixed bottom-0 right-0 w-64 h-64 bg-sky-500/5 blur-[120px] pointer-events-none -z-10" />
       <div className="fixed top-1/4 left-0 w-64 h-64 bg-emerald-500/5 blur-[120px] pointer-events-none -z-10" />
+
+      <BuyerSupportDialog
+        open={supportOpen && userRole === "BUYER"}
+        onClose={() => setSupportOpen(false)}
+      />
     </div>
   );
 }

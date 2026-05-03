@@ -1,16 +1,15 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Filter, Anchor, Layers, Box, TrendingDown, Users, Ship, ArrowUpRight, X } from "lucide-react";
+import { Search, Filter, Anchor, Layers, Box, TrendingDown, Users, Ship, ArrowUpRight, X, CheckCircle2, Clock } from "lucide-react";
 import Link from "next/link";
 import { StatusBadge, OperationStatus } from "@/components/operasyon/StatusBadge";
 import { useEffect, useState } from 'react';
 import { getAvailableRequests, autoConsolidate, getActiveShipments } from './actions';
-import { TradeStatus } from '@prisma/client';
 import { GlobalTradeRadar } from "@/components/operasyon/GlobalTradeRadar";
 
-// Map Prisma status to OperationStatus
-const mapStatus = (status: TradeStatus): OperationStatus => {
+// Map Prisma status to OperationStatus (istemcide @prisma/client yok)
+const mapStatus = (status: string): OperationStatus => {
   switch (status) {
     case 'PENDING': return 'Beklemede';
     case 'QUOTING': return 'Teklif Alındı';
@@ -55,7 +54,7 @@ export default function LojistikPage() {
   };
 
   // Occupancy calculation
-  const poolRequests = talepler.filter(t => t.status === TradeStatus.QUOTING);
+  const poolRequests = talepler.filter(t => t.status === "QUOTING");
   const totalWeight = poolRequests.reduce((acc, curr) => acc + (curr.weight || 0), 0);
   const capacity = 20000; // 20 tons
   const occupancyRate = Math.min(Math.round((totalWeight / capacity) * 100), 100);
@@ -63,7 +62,7 @@ export default function LojistikPage() {
   const lastRequest = [...poolRequests].sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())[0];
   const lastIncrease = lastRequest ? Math.round((lastRequest.weight / capacity) * 100) : 0;
 
-  const pendingRequests = talepler.filter(t => t.status === TradeStatus.ORDERED);
+  const pendingRequests = talepler.filter(t => t.status === "ORDERED");
 
   return (
     <div className="space-y-8 pb-12">

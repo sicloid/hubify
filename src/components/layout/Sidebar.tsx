@@ -17,6 +17,8 @@ import {
   Files,
   ClipboardList,
   CheckCircle2,
+  LifeBuoy,
+  History,
 } from "lucide-react";
 import { AuthSession } from "@/lib/auth-utils";
 import { motion } from "framer-motion";
@@ -55,18 +57,64 @@ export default function Sidebar({ session }: SidebarProps) {
 
   const isMainActive = pathname === mainRoute;
   const isAdminUsersActive = pathname === "/admin";
+  const isAdminSupportTicketsActive =
+    pathname === "/admin/destek-ve-hata-bildirileri";
   const reportsHref =
-    role === "ICC_EXPERT" ? "/icc-uzmani/raporlar" : 
-    role === "INSURER" ? "/sigorta/raporlar" : 
-    role === "FINANCIAL_ADV" ? "/mali-musavir/raporlar" : 
-    role === "BUYER" ? "/pazaryeri/raporlar" : 
-    "#raporlar";
-    
+    role === "ADMIN"
+      ? "/admin/raporlar"
+      : role === "ICC_EXPERT"
+        ? "/icc-uzmani/raporlar"
+        : role === "INSURER"
+          ? "/sigorta/raporlar"
+          : role === "FINANCIAL_ADV"
+            ? "/mali-musavir/raporlar"
+            : role === "BUYER"
+              ? "/pazaryeri/raporlar"
+              : role === "EXPORTER"
+                ? "/ihracatci/raporlar"
+                : role === "LOGISTICS"
+                  ? "/lojistik/raporlar"
+                  : "#raporlar";
+
   const reportsActive =
+    (role === "ADMIN" && pathname === "/admin/raporlar") ||
     (role === "ICC_EXPERT" && pathname === "/icc-uzmani/raporlar") ||
     (role === "INSURER" && pathname === "/sigorta/raporlar") ||
     (role === "FINANCIAL_ADV" && pathname === "/mali-musavir/raporlar") ||
-    (role === "BUYER" && pathname === "/pazaryeri/raporlar");
+    (role === "BUYER" && pathname === "/pazaryeri/raporlar") ||
+    (role === "EXPORTER" && pathname === "/ihracatci/raporlar") ||
+    (role === "LOGISTICS" && pathname === "/lojistik/raporlar");
+
+  const modulerItems =
+    role === "ADMIN"
+      ? [
+          { name: "Taleplerim", icon: FileText, route: "/admin/taleplerim" },
+          { name: "Kargo & Lojistik", icon: Truck, route: "/admin/kargo-lojistik" },
+          { name: "Gümrük Belgeleri", icon: Files, route: "/admin/gumruk-belgeleri" },
+          { name: "Fatura & Finans", icon: Landmark, route: "/admin/fatura-finans" },
+        ]
+      : role === "EXPORTER"
+      ? [
+          { name: "Taleplerim", icon: FileText, route: "/taleplerim" },
+          { name: "Kargo & Lojistik", icon: Truck, route: "/ihracatci/kargo-lojistik" },
+          { name: "Gümrük Belgeleri", icon: Files, route: "/ihracatci/gumruk-belgeleri" },
+          { name: "Fatura & Finans", icon: Landmark, route: "/ihracatci/fatura-finans" },
+        ]
+      : role === "LOGISTICS"
+        ? [
+            { name: "Taleplerim", icon: FileText, route: "/taleplerim" },
+            { name: "Kargo & Lojistik", icon: Truck, route: "/lojistik/kargo" },
+          ]
+        : [
+            { name: "Taleplerim", icon: FileText, route: "/taleplerim" },
+            ...(role !== "BUYER"
+              ? [
+                  { name: "Kargo & Lojistik", icon: Truck, route: "#lojistik" },
+                  { name: "Gümrük Belgeleri", icon: Files, route: "#belgeler" },
+                  { name: "Fatura & Finans", icon: Landmark, route: "#finans" },
+                ]
+              : []),
+          ];
 
   return (
     <motion.aside 
@@ -211,19 +259,56 @@ export default function Sidebar({ session }: SidebarProps) {
               </Link>
             ))}
           </>
-        ) : role === "INSURER" || role === "FINANCIAL_ADV" ? null : (
+        ) : role === "INSURER" ? null : role === "FINANCIAL_ADV" ? (
           <>
             <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3 px-3 mt-6">
               Modüller
             </div>
             {[
-              { name: "Taleplerim", icon: FileText, route: "/taleplerim" },
-              ...(role !== "BUYER" ? [
-                { name: "Kargo & Lojistik", icon: Truck, route: "#lojistik" },
-                { name: "Gümrük Belgeleri", icon: Files, route: "#belgeler" },
-                { name: "Fatura & Finans", icon: Landmark, route: "#finans" },
-              ] : [])
+              {
+                name: "Geçmiş İşlemler",
+                icon: History,
+                route: "/mali-musavir/gecmis-islemler",
+              },
             ].map((item, idx) => (
+              <Link key={idx} href={item.route} className="block relative mt-2">
+                {pathname === item.route && (
+                  <motion.div
+                    layoutId="activeTab"
+                    className="absolute inset-0 bg-brand-primary/20 border border-brand-primary/30 rounded-xl"
+                    initial={false}
+                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                  />
+                )}
+                <motion.div
+                  whileHover={{ x: 5 }}
+                  className={`flex items-center justify-between px-3 py-2.5 rounded-xl relative z-10 transition-colors ${
+                    pathname === item.route
+                      ? "text-white"
+                      : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <item.icon
+                      className={`h-5 w-5 ${
+                        pathname === item.route ? "text-brand-secondary" : "text-slate-500"
+                      }`}
+                    />
+                    <span className="text-sm font-medium">{item.name}</span>
+                  </div>
+                  {pathname === item.route && (
+                    <ChevronRight className="w-4 h-4 text-brand-secondary opacity-50" />
+                  )}
+                </motion.div>
+              </Link>
+            ))}
+          </>
+        ) : (
+          <>
+            <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3 px-3 mt-6">
+              Modüller
+            </div>
+            {modulerItems.map((item, idx) => (
               <Link key={idx} href={item.route} className="block relative mt-2">
                 {pathname === item.route && (
                   <motion.div
@@ -285,26 +370,49 @@ export default function Sidebar({ session }: SidebarProps) {
         </Link>
 
         {role === "ADMIN" && (
-          <Link href="/admin" className="block relative">
-            {isAdminUsersActive && !isMainActive && (
+          <>
+            <Link href="/admin" className="block relative">
+              {isAdminUsersActive && !isMainActive && !isAdminSupportTicketsActive && (
+                <motion.div 
+                  layoutId="activeTab"
+                  className="absolute inset-0 bg-brand-primary/20 border border-brand-primary/30 rounded-xl"
+                  initial={false}
+                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                />
+              )}
               <motion.div 
-                layoutId="activeTab"
-                className="absolute inset-0 bg-brand-primary/20 border border-brand-primary/30 rounded-xl"
-                initial={false}
-                transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              />
-            )}
-            <motion.div 
-              whileHover={{ x: 5 }}
-              className={`flex items-center justify-between px-3 py-2.5 rounded-xl relative z-10 transition-colors ${isAdminUsersActive && !isMainActive ? 'text-white' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'}`}
-            >
-              <div className="flex items-center gap-3">
-                <Users className={`h-5 w-5 ${isAdminUsersActive && !isMainActive ? 'text-brand-secondary' : 'text-slate-500'}`} />
-                <span className="text-sm font-medium">Kullanıcı Yönetimi</span>
-              </div>
-              {isAdminUsersActive && !isMainActive && <ChevronRight className="w-4 h-4 text-brand-secondary opacity-50" />}
-            </motion.div>
-          </Link>
+                whileHover={{ x: 5 }}
+                className={`flex items-center justify-between px-3 py-2.5 rounded-xl relative z-10 transition-colors ${isAdminUsersActive && !isMainActive && !isAdminSupportTicketsActive ? 'text-white' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'}`}
+              >
+                <div className="flex items-center gap-3">
+                  <Users className={`h-5 w-5 ${isAdminUsersActive && !isMainActive && !isAdminSupportTicketsActive ? 'text-brand-secondary' : 'text-slate-500'}`} />
+                  <span className="text-sm font-medium">Kullanıcı Yönetimi</span>
+                </div>
+                {isAdminUsersActive && !isMainActive && !isAdminSupportTicketsActive && <ChevronRight className="w-4 h-4 text-brand-secondary opacity-50" />}
+              </motion.div>
+            </Link>
+
+            <Link href="/admin/destek-ve-hata-bildirileri" className="block relative">
+              {isAdminSupportTicketsActive && (
+                <motion.div 
+                  layoutId="activeTab"
+                  className="absolute inset-0 bg-brand-primary/20 border border-brand-primary/30 rounded-xl"
+                  initial={false}
+                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                />
+              )}
+              <motion.div 
+                whileHover={{ x: 5 }}
+                className={`flex items-center justify-between px-3 py-2.5 rounded-xl relative z-10 transition-colors ${isAdminSupportTicketsActive ? 'text-white' : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'}`}
+              >
+                <div className="flex items-center gap-3">
+                  <LifeBuoy className={`h-5 w-5 ${isAdminSupportTicketsActive ? 'text-rose-400' : 'text-slate-500'}`} />
+                  <span className="text-sm font-medium">Destek ve Hata Bildirileri</span>
+                </div>
+                {isAdminSupportTicketsActive && <ChevronRight className="w-4 h-4 text-brand-secondary opacity-50" />}
+              </motion.div>
+            </Link>
+          </>
         )}
 
         <Link href={profileRoute ?? "#ayarlar"} className="block relative group">
