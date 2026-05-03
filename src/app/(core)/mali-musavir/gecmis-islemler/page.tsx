@@ -2,6 +2,7 @@ import Link from "next/link";
 import { TradeStatus, UserRole } from "@prisma/client";
 import { BadgeCheck, Landmark, ArrowLeft } from "lucide-react";
 import { prisma } from "@/lib/prisma";
+import { tradeProductImageSrc } from "@/lib/format-trade-money";
 import { requireRole } from "@/lib/auth-utils";
 
 const statusLabel: Record<TradeStatus, string> = {
@@ -80,18 +81,28 @@ export default async function FinancialAdvHistoryPage() {
             Henüz geçmiş işlem kaydı yok
           </div>
         ) : (
-          history.map((request) => (
+          history.map((request) => {
+            const thumb = tradeProductImageSrc(request.productImage);
+            return (
             <Link
               key={request.id}
               href={`/mali-musavir/${request.id}`}
               className="rounded-2xl border border-slate-200 bg-white p-5 flex flex-wrap items-center justify-between gap-4 hover:bg-slate-50/80 hover:border-slate-300 transition-colors shadow-sm"
             >
               <div className="flex items-center gap-4 min-w-0">
-                <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center shrink-0">
-                  <Landmark className="w-5 h-5 text-emerald-600" />
-                </div>
+                {thumb ? (
+                  <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={thumb} alt="" className="h-full w-full object-cover" />
+                  </div>
+                ) : (
+                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-slate-100 bg-emerald-50">
+                    <Landmark className="h-6 w-6 text-emerald-600" />
+                  </div>
+                )}
                 <div className="min-w-0">
                   <p className="font-black text-slate-900 truncate">{request.referenceNumber}</p>
+                  <p className="truncate text-sm font-semibold text-slate-700">{request.title}</p>
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter truncate">
                     İhracatçı: {request.exporter.fullName}
                   </p>
@@ -118,7 +129,8 @@ export default async function FinancialAdvHistoryPage() {
                 </p>
               </div>
             </Link>
-          ))
+          );
+          })
         )}
       </div>
     </div>
