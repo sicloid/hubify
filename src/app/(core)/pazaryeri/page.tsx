@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useTransition } from 'react';
+import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingCart, Package, MapPin, User, CreditCard, Shield, CheckCircle2, Clock, DollarSign, X } from 'lucide-react';
 import { getAvailableProducts, placeOrder, confirmPayment, getMyOrders } from './actions';
@@ -66,7 +67,6 @@ export default function PazaryeriPage() {
       setPayingOrderId(null);
     });
   };
-
   const formatPrice = (price: any, currency: string) => {
     if (price === null || price === undefined) return 'Fiyat belirtilmemiş';
     const num = Number(price);
@@ -80,234 +80,118 @@ export default function PazaryeriPage() {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative bg-gradient-to-br from-brand-primary via-slate-800 to-slate-900 rounded-3xl p-8 text-white overflow-hidden"
+        className="relative bg-gradient-to-br from-brand-primary via-slate-800 to-slate-900 rounded-[2.5rem] p-10 text-white overflow-hidden shadow-2xl"
       >
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-4 right-8 w-64 h-64 bg-white rounded-full blur-3xl" />
         </div>
-        <div className="relative z-10">
-          <h1 className="text-3xl font-bold">Küresel Pazaryeri</h1>
-          <p className="text-slate-300 mt-2 max-w-xl">
-            Türkiye'nin en kaliteli ihraç ürünlerini keşfedin. Tek tıkla sipariş verin, 
-            ödemeniz ICC güvencesinde (escrow) tutulur.
+        <div className="relative z-10 space-y-4">
+          <h1 className="text-4xl font-black tracking-tighter">Küresel Pazaryeri</h1>
+          <p className="text-slate-300 max-w-xl text-lg font-medium leading-relaxed">
+            Türkiye'nin en kaliteli ihraç ürünlerini doğrudan kaynağından keşfedin. 
+            Güvenli ödeme altyapımız ile ticaretiniz ICC güvencesinde.
           </p>
-          <div className="flex gap-3 mt-6">
-            <div className="bg-white/10 backdrop-blur rounded-xl px-4 py-2 flex items-center gap-2">
-              <Package className="w-4 h-4" /> Mevcut Ürünler <span className="font-bold">{products.length}</span>
+          <div className="flex flex-wrap gap-4 pt-4">
+            <div className="bg-white/10 backdrop-blur-md border border-white/10 rounded-2xl px-6 py-3 flex items-center gap-3">
+              <Package className="w-5 h-5 text-brand-secondary" /> 
+              <span className="text-sm font-bold">Mevcut Ürünler: {products.length}</span>
             </div>
-            <div className="bg-white/10 backdrop-blur rounded-xl px-4 py-2 flex items-center gap-2">
-              <ShoppingCart className="w-4 h-4" /> Siparişlerim <span className="font-bold">{orders.length}</span>
-            </div>
-            <div className="bg-white/10 backdrop-blur rounded-xl px-4 py-2 flex items-center gap-2">
-              <Shield className="w-4 h-4" /> ICC Escrow Koruması
+            <div className="bg-white/10 backdrop-blur-md border border-white/10 rounded-2xl px-6 py-3 flex items-center gap-3">
+              <Shield className="w-5 h-5 text-emerald-400" /> 
+              <span className="text-sm font-bold text-emerald-100">ICC Escrow Koruması</span>
             </div>
           </div>
         </div>
       </motion.div>
 
-      {/* Tabs */}
-      <div className="flex gap-2">
-        <button
-          onClick={() => setActiveTab('products')}
-          className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold transition-all ${
-            activeTab === 'products'
-              ? 'bg-slate-900 text-white shadow-lg'
-              : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'
-          }`}
-        >
-          <Package className="w-4 h-4" /> Ürünler ({products.length})
-        </button>
-        <button
-          onClick={() => setActiveTab('orders')}
-          className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold transition-all ${
-            activeTab === 'orders'
-              ? 'bg-slate-900 text-white shadow-lg'
-              : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'
-          }`}
-        >
-          <ShoppingCart className="w-4 h-4" /> Siparişlerim ({orders.length})
-        </button>
-      </div>
-
       {/* Content */}
-      <AnimatePresence mode="wait">
-        {activeTab === 'products' ? (
-          <motion.div key="products" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            {isLoading ? (
-              <div className="flex justify-center py-20">
-                <div className="w-8 h-8 border-4 border-slate-200 border-t-brand-secondary rounded-full animate-spin" />
-              </div>
-            ) : products.length === 0 ? (
-              <div className="text-center py-20 text-slate-400">
-                <Package className="w-16 h-16 mx-auto mb-4 opacity-30" />
-                <p className="text-lg font-bold">Şu an mevcut ürün yok</p>
-                <p className="text-sm">İhracatçılar yeni ürün listelediğinde burada görünecek.</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {products.map((p, i) => (
-                  <motion.div
-                    key={p.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.05 }}
-                    className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all group"
-                  >
-                    {/* Product header with image or placeholder */}
-                    <div className="bg-gradient-to-r from-slate-50 to-slate-100 aspect-video relative overflow-hidden">
-                      {p.productImage ? (
-                        <img 
-                          src={p.productImage} 
-                          alt={p.title} 
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <Package className="w-16 h-16 text-slate-300 group-hover:scale-110 transition-transform" />
-                        </div>
-                      )}
-                      <div className="absolute top-3 right-3 bg-white/90 backdrop-blur rounded-lg px-2 py-1 text-[10px] font-black text-slate-600 shadow-sm uppercase tracking-tighter">
-                        {p.weight} kg
-                      </div>
-                      {p.destinationCity && (
-                        <div className="absolute top-3 left-3 bg-brand-secondary/90 backdrop-blur rounded-lg px-2 py-1 text-[10px] font-black text-white shadow-sm flex items-center gap-1 uppercase tracking-tighter">
-                          <MapPin className="w-3 h-3" /> {p.destinationCity}
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="p-5 space-y-3">
-                      <p className="text-xs text-brand-secondary font-mono">{p.referenceNumber}</p>
-                      <h3 className="font-bold text-lg text-slate-900">{p.title}</h3>
-                      {p.description && <p className="text-sm text-slate-500 line-clamp-2">{p.description}</p>}
-                      
-                      <div className="flex items-center gap-2 text-xs text-slate-400">
-                        <User className="w-3 h-3" /> {p.exporter.fullName}
-                      </div>
-
-                      {/* Price display */}
-                      <div className="pt-3 border-t border-slate-100">
-                        {p.totalPrice !== null ? (
-                          <div className="flex items-end justify-between">
-                            <div>
-                              <p className="text-xs text-slate-400">Toplam Fiyat</p>
-                              <p className="text-2xl font-bold text-slate-900">
-                                {formatPrice(p.totalPrice, p.currency)}
-                              </p>
-                            </div>
-                            <p className="text-xs text-slate-400">
-                              {formatPrice(p.unitPrice, p.currency)}/kg
-                            </p>
-                          </div>
-                        ) : (
-                          <p className="text-sm text-slate-400 italic">Fiyat belirtilmemiş</p>
-                        )}
-                      </div>
-
-                      <button
-                        onClick={() => handleOrder(p)}
-                        disabled={isPending}
-                        className="w-full mt-2 flex items-center justify-center gap-2 bg-brand-secondary text-white py-3 rounded-xl font-bold text-sm hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-50"
-                      >
-                        <ShoppingCart className="w-4 h-4" />
-                        Satın Al{p.totalPrice !== null ? ` — ${formatPrice(p.totalPrice, p.currency)}` : ''}
-                      </button>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            )}
-          </motion.div>
+      <div className="space-y-6">
+        <h2 className="text-xl font-black text-slate-900 uppercase tracking-widest flex items-center gap-3">
+          <ShoppingCart className="w-6 h-6 text-brand-secondary" />
+          Yeni Gelen Ürünler
+        </h2>
+        
+        {isLoading ? (
+          <div className="flex justify-center py-24">
+            <div className="w-12 h-12 border-4 border-slate-200 border-t-brand-secondary rounded-full animate-spin" />
+          </div>
+        ) : products.length === 0 ? (
+          <div className="text-center py-32 bg-white rounded-[3rem] border border-slate-200">
+            <Package className="w-20 h-20 mx-auto mb-6 text-slate-200" />
+            <h3 className="text-xl font-bold text-slate-900">Şu an sergilenen ürün bulunmuyor</h3>
+            <p className="text-slate-400 mt-2 font-medium">İhracatçılar yeni ürün eklediğinde burada görünecektir.</p>
+          </div>
         ) : (
-          <motion.div key="orders" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            {orders.length === 0 ? (
-              <div className="text-center py-20 text-slate-400">
-                <ShoppingCart className="w-16 h-16 mx-auto mb-4 opacity-30" />
-                <p className="text-lg font-bold">Henüz siparişiniz yok</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {orders.map((o, i) => (
-                  <motion.div
-                    key={o.id}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: i * 0.05 }}
-                    className="bg-white border border-slate-200 rounded-3xl p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 hover:shadow-xl hover:shadow-slate-200/50 transition-all group"
-                  >
-                    <div className="flex items-center gap-6 flex-1">
-                      <div className="w-20 h-20 bg-slate-100 rounded-2xl flex items-center justify-center overflow-hidden shrink-0 shadow-inner">
-                        {o.productImage ? (
-                          <img src={o.productImage} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                        ) : (
-                          <Package className="w-8 h-8 text-slate-300" />
-                        )}
-                      </div>
-                      <div className="flex-1 space-y-1">
-                        <div className="flex items-center gap-2">
-                          <p className="font-black text-slate-900 text-lg">{o.title}</p>
-                          {o.paymentStatus === 'ESCROW_HELD' && (
-                            <div className="flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-600 rounded-full text-[10px] font-black uppercase tracking-tighter">
-                              <Shield className="w-3 h-3" /> Güvende
-                            </div>
-                          )}
-                        </div>
-                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-400 font-bold uppercase tracking-tight">
-                          <span className="text-brand-secondary">{o.referenceNumber}</span>
-                          <span className="flex items-center gap-1"><User className="w-3 h-3" /> {o.exporter.fullName}</span>
-                          <span className="flex items-center gap-1"><Package className="w-3 h-3" /> {o.weight} kg</span>
-                          {o.destinationCity && (
-                            <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{o.destinationCity}</span>
-                          )}
-                        </div>
-                      </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {products.map((p, i) => (
+              <motion.div
+                key={p.id}
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.05 }}
+                className="bg-white border border-slate-200 rounded-[2.5rem] overflow-hidden shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 group"
+              >
+                {/* Product image */}
+                <div className="bg-slate-50 aspect-[4/3] relative overflow-hidden">
+                  {p.productImage ? (
+                    <img 
+                      src={p.productImage} 
+                      alt={p.title} 
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <Package className="w-16 h-16 text-slate-200 group-hover:scale-110 transition-transform" />
                     </div>
-
-                    <div className="flex flex-col md:items-end gap-3 w-full md:w-auto border-t md:border-t-0 pt-4 md:pt-0 border-slate-50">
-                      <div className="flex items-baseline gap-2">
-                        <p className="text-2xl font-black text-slate-900">
-                          {formatPrice(o.totalPrice, o.currency)}
-                        </p>
-                        {o.unitPrice !== null && (
-                          <p className="text-[10px] font-bold text-slate-400 uppercase">{formatPrice(o.unitPrice, o.currency)}/kg</p>
-                        )}
-                      </div>
-
-                      <div className="flex items-center gap-3">
-                        {o.paymentStatus && paymentStatusLabels[o.paymentStatus] ? (
-                          <div className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 ${paymentStatusLabels[o.paymentStatus].color}`}>
-                            {o.paymentStatus === 'ESCROW_HELD' ? <CheckCircle2 className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
-                            {paymentStatusLabels[o.paymentStatus].label}
-                          </div>
-                        ) : (
-                          <span className="px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest bg-slate-100 text-slate-500">
-                            {o.status}
-                          </span>
-                        )}
-
-                        {o.paymentStatus === 'AWAITING_PAYMENT' && (
-                          <button
-                            onClick={() => handlePayment(o.id)}
-                            disabled={payingOrderId === o.id}
-                            className="flex items-center gap-2 px-6 py-2.5 bg-emerald-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-700 transition-all hover:scale-105 active:scale-95 shadow-lg shadow-emerald-200 disabled:opacity-50"
-                          >
-                            {payingOrderId === o.id ? (
-                              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                            ) : (
-                              <CreditCard className="w-4 h-4" />
-                            )}
-                            Ödeme Yap
-                          </button>
-                        )}
-                      </div>
+                  )}
+                  <div className="absolute bottom-4 left-4 right-4 flex justify-between items-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <div className="bg-white/90 backdrop-blur rounded-xl px-3 py-1.5 text-[10px] font-black text-slate-900 shadow-xl uppercase">
+                      Ağırlık: {p.weight} kg
                     </div>
-                  </motion.div>
-                ))}
-              </div>
-            )}
-          </motion.div>
+                  </div>
+                </div>
+
+                <div className="p-8 space-y-4">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="text-[10px] font-black text-brand-secondary uppercase tracking-widest mb-1">{p.referenceNumber}</p>
+                      <h3 className="font-bold text-xl text-slate-900 leading-tight">{p.title}</h3>
+                    </div>
+                    <div className="bg-slate-50 p-2 rounded-xl border border-slate-100">
+                      <MapPin className="w-5 h-5 text-sky-500" />
+                    </div>
+                  </div>
+                  
+                  {p.description && <p className="text-sm text-slate-500 line-clamp-2 font-medium">{p.description}</p>}
+                  
+                  <div className="flex items-center gap-2 text-xs font-bold text-slate-400">
+                    <div className="w-6 h-6 bg-slate-100 rounded-full flex items-center justify-center">
+                      <User className="w-3 h-3" />
+                    </div>
+                    {p.exporter.fullName}
+                  </div>
+
+                  <div className="pt-6 border-t border-slate-100 flex items-center justify-between">
+                    <div>
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Toplam Fiyat</p>
+                      <p className="text-3xl font-black text-slate-900">
+                        {formatPrice(p.totalPrice, p.currency)}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => handleOrder(p)}
+                      disabled={isPending}
+                      className="w-12 h-12 bg-slate-900 text-white rounded-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all shadow-xl shadow-slate-200 disabled:opacity-50"
+                    >
+                      <ShoppingCart className="w-6 h-6" />
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
         )}
-      </AnimatePresence>
+      </div>
 
       {/* Order Confirmation Modal */}
       <AnimatePresence>

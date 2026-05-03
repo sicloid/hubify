@@ -194,11 +194,50 @@ export async function getActiveShipments() {
   await requireAuth();
   
   try {
-    const data = await getCachedActiveShipments();
+    const data = await prisma.tradeRequest.findMany({
+      where: {
+        status: {
+          in: [
+            TradeStatus.LOGISTICS_APPROVED,
+            TradeStatus.DOCUMENTS_PENDING,
+            TradeStatus.DOCUMENTS_APPROVED,
+            TradeStatus.IN_TRANSIT
+          ]
+        },
+      },
+      orderBy: { updatedAt: 'desc' },
+      select: {
+        id: true,
+        referenceNumber: true,
+        status: true,
+        title: true
+      }
+    });
     return serializeDecimal(data);
   } catch (error) {
     console.error("Aktif sevkiyat hatası:", error);
     return [];
+  }
+}
+
+export async function markAsDelivered(tradeRequestId: string) {
+  await requireRole([UserRole.LOGISTICS, UserRole.ADMIN]);
+
+  try {
+    const updated = await prisma.tradeRequest.update({
+      where: { id: tradeRequestId },
+      data: { status: TradeStatus.COMPLETED }
+    });
+
+    revalidatePath("/lojistik", "layout");
+    revalidatePath("/pazaryeri", "layout");
+    revalidatePath("/sigorta", "layout");
+    revalidateTag('trade-requests');
+    
+    return { success: true };
+  } catch (error) {
+    console.error("Teslimat onaylama hatası:", error);
+    return { success: false, error: "İşlem tamamlanamadı." };
   }
 }
 
