@@ -5,12 +5,14 @@ import { UserRole } from "@prisma/client";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
+  Archive,
   Users,
   FileText,
   Truck,
   Package,
   ShieldCheck,
   Landmark,
+  ShoppingCart,
   ChevronRight,
   BarChart,
   Settings,
@@ -18,6 +20,7 @@ import {
   ClipboardList,
   CheckCircle2,
   LifeBuoy,
+  ShoppingBag,
   History,
 } from "lucide-react";
 import { AuthSession } from "@/lib/auth-utils";
@@ -102,8 +105,13 @@ export default function Sidebar({ session }: SidebarProps) {
         ]
       : role === "LOGISTICS"
         ? [
-            { name: "Taleplerim", icon: FileText, route: "/taleplerim" },
-            { name: "Kargo & Lojistik", icon: Truck, route: "/lojistik/kargo" },
+            { name: "Lojistik Paneli", icon: LayoutDashboard, route: "/lojistik" },
+            { name: "Yoldaki Ürünler", icon: Truck, route: "/lojistik/yoldaki" },
+          ]
+      : role === "BUYER"
+        ? [
+            { name: "Pazaryeri", icon: ShoppingCart, route: "/pazaryeri" },
+            { name: "Siparişlerim", icon: ShoppingBag, route: "/pazaryeri/siparisler" },
           ]
         : [
             { name: "Taleplerim", icon: FileText, route: "/taleplerim" },
@@ -152,16 +160,10 @@ export default function Sidebar({ session }: SidebarProps) {
                 icon: ClipboardList,
               },
               {
-                href: "/sigorta/yolda",
-                label: "Yolda sigortalı yük",
-                sublabel: "Canlı sevkiyat kartları",
-                icon: Truck,
-              },
-              {
                 href: "/sigorta/tamamlanan",
-                label: "Tamamlanan sigortalı sevkiyat",
-                sublabel: "Arşiv ve poliçe bağlantıları",
-                icon: CheckCircle2,
+                label: "Tamamlanan Sevkiyatlar",
+                sublabel: "Arşiv ve poliçe kayıtları",
+                icon: Archive,
               },
             ].map((item) => {
               const isActive = pathname === item.href;

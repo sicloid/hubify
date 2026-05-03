@@ -5,7 +5,7 @@ import { Search, Filter, Anchor, Layers, Box, TrendingDown, Users, Ship, ArrowUp
 import Link from "next/link";
 import { StatusBadge, OperationStatus } from "@/components/operasyon/StatusBadge";
 import { useEffect, useState } from 'react';
-import { getAvailableRequests, autoConsolidate, getActiveShipments } from './actions';
+import { getAvailableRequests, autoConsolidate, getActiveShipments, markAsDelivered } from './actions';
 import { GlobalTradeRadar } from "@/components/operasyon/GlobalTradeRadar";
 
 // Map Prisma status to OperationStatus (istemcide @prisma/client yok)
@@ -14,6 +14,10 @@ const mapStatus = (status: string): OperationStatus => {
     case 'PENDING': return 'Beklemede';
     case 'QUOTING': return 'Teklif Alındı';
     case 'LOGISTICS_APPROVED': return 'Lojistik Onaylandı';
+    case 'DOCUMENTS_PENDING': return 'Gümrük Denetimi';
+    case 'DOCUMENTS_APPROVED': return 'Finans Onaylı';
+    case 'IN_TRANSIT': return 'Yolda';
+    case 'COMPLETED': return 'Teslim Edildi';
     default: return 'Beklemede';
   }
 };
@@ -23,7 +27,7 @@ export default function LojistikPage() {
   const [myQuotes, setMyQuotes] = useState<any[]>([]);
   const [activeShipments, setActiveShipments] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'pool' | 'quotes'>('pool');
+  const [activeTab, setActiveTab] = useState<'pool' | 'quotes' | 'shipments'>('pool');
   const [isConsolidating, setIsConsolidating] = useState(false);
   const [showPoolDetails, setShowPoolDetails] = useState(false);
 
@@ -130,6 +134,14 @@ export default function LojistikPage() {
         >
           Tekliflerim ({myQuotes.length})
         </button>
+        <button
+          onClick={() => setActiveTab('shipments')}
+          className={`px-6 py-2.5 rounded-full text-xs font-black uppercase tracking-widest transition-all ${
+            activeTab === 'shipments' ? 'bg-slate-900 text-white shadow-xl shadow-slate-200' : 'bg-white text-slate-500 hover:bg-slate-50 border border-slate-200'
+          }`}
+        >
+          Sevkiyat Takibi ({activeShipments.filter(s => s.status === 'IN_TRANSIT').length})
+        </button>
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
@@ -188,7 +200,7 @@ export default function LojistikPage() {
                   </div>
                 </div>
               </motion.div>
-            ) : (
+            ) : activeTab === 'quotes' ? (
               <motion.div key="quotes" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm">
                 <div className="p-6 border-b border-slate-100 bg-slate-50/50">
                   <h3 className="font-bold text-slate-800">Verdiğim Teklifler</h3>
@@ -213,6 +225,45 @@ export default function LojistikPage() {
                           <span className={`text-[10px] font-black uppercase tracking-widest ${quote.isAccepted ? 'text-emerald-600' : 'text-amber-500'}`}>
                             {quote.isAccepted ? 'Kabul Edildi' : 'Yanıt Bekleniyor'}
                           </span>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </motion.div>
+            ) : (
+              <motion.div key="shipments" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm">
+                <div className="p-6 border-b border-slate-100 bg-slate-50/50">
+                  <h3 className="font-bold text-slate-800">Aktif Sevkiyatlar ve Teslimatlar</h3>
+                </div>
+                <div className="divide-y divide-slate-100">
+                  {activeShipments.filter(s => s.status === 'IN_TRANSIT').length === 0 ? (
+                    <div className="p-12 text-center text-slate-400 italic">Şu an yolda olan sevkiyat bulunmuyor.</div>
+                  ) : (
+                    activeShipments.filter(s => s.status === 'IN_TRANSIT').map((shipment, idx) => (
+                      <div key={shipment.id} className="p-6 flex flex-col md:flex-row justify-between items-center hover:bg-slate-50/50 transition-colors">
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center border border-amber-100">
+                            <Truck className="w-6 h-6" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold text-slate-900">{shipment.title}</p>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">REF: {shipment.referenceNumber}</p>
+                          </div>
+                        </div>
+                        <div className="mt-4 md:mt-0 flex items-center gap-3">
+                          <span className="px-3 py-1 bg-sky-50 text-sky-600 rounded-full text-[10px] font-black uppercase tracking-widest">Yolda</span>
+                          <button 
+                            onClick={async () => {
+                              if(confirm('Bu ürünün teslim edildiğini onaylıyor musunuz?')) {
+                                await markAsDelivered(shipment.id);
+                                await loadData();
+                              }
+                            }}
+                            className="px-6 py-2.5 bg-emerald-600 text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-100"
+                          >
+                            Teslim Edildi Olarak İşaretle
+                          </button>
                         </div>
                       </div>
                     ))

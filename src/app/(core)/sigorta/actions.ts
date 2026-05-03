@@ -1,7 +1,7 @@
 "use server";
 
 import { DocumentType, TradeStatus, UserRole } from "@prisma/client";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/auth-utils";
 import { uploadFileToS3 } from "@/lib/s3-upload";
@@ -41,6 +41,73 @@ export async function issuePolicyAndDispatch(tradeRequestId: string, formData: F
   });
 
   revalidatePath("/sigorta", "layout");
+  revalidatePath("/lojistik", "layout");
+  revalidatePath("/pazaryeri", "layout");
+  revalidateTag("trade-requests");
+}
+
+import { serializeDecimal } from "@/lib/serialize";
+
+export async function getPendingPolicies() {
+  await requireRole([UserRole.INSURER, UserRole.ADMIN]);
+
+  try {
+    const requests = await prisma.tradeRequest.findMany({
+      where: {
+        status: TradeStatus.DOCUMENTS_APPROVED
+      },
+      include: {
+        exporter: {
+          select: { fullName: true }
+        },
+        documents: {
+          where: {
+            type: {
+              in: [DocumentType.COMMERCIAL_INVOICE, DocumentType.OTHER]
+            }
+          }
+        }
+      },
+      orderBy: {
+        updatedAt: 'desc'
+      }
+    });
+
+    return serializeDecimal(requests);
+  } catch (error) {
+    console.error("Sigorta bekleyen listesi hatası:", error);
+    return [];
+  }
+}
+
+export async function getCompletedPolicies() {
+  await requireRole([UserRole.INSURER, UserRole.ADMIN]);
+
+  try {
+    const requests = await prisma.tradeRequest.findMany({
+      where: {
+        status: TradeStatus.COMPLETED
+      },
+      include: {
+        exporter: {
+          select: { fullName: true }
+        },
+        documents: {
+          where: {
+            type: DocumentType.INSURANCE_POLICY
+          }
+        }
+      },
+      orderBy: {
+        updatedAt: 'desc'
+      }
+    });
+
+    return serializeDecimal(requests);
+  } catch (error) {
+    console.error("Sigorta tamamlanan listesi hatası:", error);
+    return [];
+  }
 }
 
 export async function markShipmentCompleted(tradeRequestId: string) {
