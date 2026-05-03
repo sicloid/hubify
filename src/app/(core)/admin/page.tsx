@@ -5,8 +5,6 @@ import { UserRole } from "@prisma/client";
 import { Shield, Users as UsersIcon } from "lucide-react";
 import { LiveShipmentMap } from "@/components/admin/LiveShipmentMap";
 import { LiveSystemLogs } from "@/components/admin/LiveSystemLogs";
-import { SupportTicketsTable } from "@/components/admin/SupportTicketsTable";
-import { getSupportTickets } from "./actions";
 
 export default async function AdminPage() {
   // 1. Guard Katmanı: Sadece ADMIN girebilir
@@ -18,8 +16,6 @@ export default async function AdminPage() {
   });
 
   const roles = Object.values(UserRole);
-  
-  const supportTickets = await getSupportTickets();
 
   return (
     <div className="max-w-7xl mx-auto space-y-8">
@@ -88,8 +84,6 @@ export default async function AdminPage() {
           </table>
         </div>
       </div>
-
-      <SupportTicketsTable tickets={supportTickets} />
     </div>
   );
 }

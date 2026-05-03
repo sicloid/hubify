@@ -6,9 +6,20 @@ import { ArrowLeft, CheckCircle2, DollarSign, Package, Truck, Ship, Calendar, Sh
 import Link from "next/link";
 import { StatusBadge, OperationStatus } from "@/components/operasyon/StatusBadge";
 import { getTradeRequestDetail, acceptQuote } from '../actions';
-import { TradeStatus } from '@prisma/client';
 
-const mapStatus = (status: TradeStatus): OperationStatus => {
+/** API'den gelen TradeStatus değerleri — istemcide @prisma/client kullanılmaz (require hatası önlenir) */
+type ExporterTradeStatus =
+  | "PENDING"
+  | "ORDERED"
+  | "QUOTING"
+  | "LOGISTICS_APPROVED"
+  | "DOCUMENTS_PENDING"
+  | "DOCUMENTS_APPROVED"
+  | "IN_TRANSIT"
+  | "COMPLETED"
+  | "CANCELLED";
+
+const mapStatus = (status: string): OperationStatus => {
   switch (status) {
     case 'PENDING': return 'Beklemede';
     case 'ORDERED': return 'Sipariş Verildi';
@@ -21,13 +32,17 @@ const mapStatus = (status: TradeStatus): OperationStatus => {
   }
 };
 
-const trackingSteps = [
-  { id: 'talep', label: 'Talep', statuses: [TradeStatus.PENDING, TradeStatus.ORDERED] },
-  { id: 'konsolidasyon', label: 'Konsolidasyon', statuses: [TradeStatus.QUOTING] },
-  { id: 'yasal-onay', label: 'Yasal Onay', statuses: [TradeStatus.LOGISTICS_APPROVED, TradeStatus.DOCUMENTS_PENDING] },
-  { id: 'finans', label: 'Finans', statuses: [TradeStatus.DOCUMENTS_APPROVED] },
-  { id: 'guvence', label: 'Güvence & Sevkiyat', statuses: [TradeStatus.IN_TRANSIT] },
-  { id: 'tamamlandi', label: 'Teslim Edildi', statuses: [TradeStatus.COMPLETED] },
+const trackingSteps: {
+  id: string;
+  label: string;
+  statuses: readonly ExporterTradeStatus[];
+}[] = [
+  { id: 'talep', label: 'Talep', statuses: ['PENDING', 'ORDERED'] },
+  { id: 'konsolidasyon', label: 'Konsolidasyon', statuses: ['QUOTING'] },
+  { id: 'yasal-onay', label: 'Yasal Onay', statuses: ['LOGISTICS_APPROVED', 'DOCUMENTS_PENDING'] },
+  { id: 'finans', label: 'Finans', statuses: ['DOCUMENTS_APPROVED'] },
+  { id: 'guvence', label: 'Güvence & Sevkiyat', statuses: ['IN_TRANSIT'] },
+  { id: 'tamamlandi', label: 'Teslim Edildi', statuses: ['COMPLETED'] },
 ];
 
 export default function ExporterTalepDetayPage({ params: paramsPromise }: { params: Promise<{ id: string }> }) {
@@ -63,7 +78,9 @@ export default function ExporterTalepDetayPage({ params: paramsPromise }: { para
     return <div className="p-20 text-center text-slate-400">Talep bulunamadı veya yetkiniz yok.</div>;
   }
 
-  const currentStepIndex = trackingSteps.findIndex(step => (step.statuses as TradeStatus[]).includes(talep.status));
+  const currentStepIndex = trackingSteps.findIndex((step) =>
+    (step.statuses as readonly string[]).includes(talep.status as string),
+  );
   const acceptedQuote = talep.quotes.find((q: any) => q.isAccepted);
 
   // Mock location and ETA based on status

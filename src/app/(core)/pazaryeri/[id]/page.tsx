@@ -5,14 +5,25 @@ import { useState, use, useEffect } from 'react';
 import { 
   ArrowLeft, CheckCircle2, DollarSign, Package, Truck, 
   Ship, Calendar, ShieldCheck, MapPin, Globe, Clock, 
-  ChevronRight, Info, CreditCard
+  ChevronRight, Info, CreditCard, LifeBuoy
 } from "lucide-react";
+import BuyerSupportDialog from "@/components/support/BuyerSupportDialog";
 import Link from "next/link";
 import { StatusBadge, OperationStatus } from "@/components/operasyon/StatusBadge";
 import { getTradeRequestDetail } from '../../ihracatci/actions'; // Mevcut detayı kullanabiliriz
-import { TradeStatus } from '@prisma/client';
 
-const mapStatus = (status: TradeStatus): OperationStatus => {
+type BuyerTradeStatus =
+  | "PENDING"
+  | "ORDERED"
+  | "QUOTING"
+  | "LOGISTICS_APPROVED"
+  | "DOCUMENTS_PENDING"
+  | "DOCUMENTS_APPROVED"
+  | "IN_TRANSIT"
+  | "COMPLETED"
+  | "CANCELLED";
+
+const mapStatus = (status: string): OperationStatus => {
   switch (status) {
     case 'PENDING': return 'Beklemede';
     case 'ORDERED': return 'Sipariş Verildi';
@@ -25,19 +36,24 @@ const mapStatus = (status: TradeStatus): OperationStatus => {
   }
 };
 
-const trackingSteps = [
-  { id: 'siparis', label: 'Sipariş', statuses: [TradeStatus.PENDING, TradeStatus.ORDERED] },
-  { id: 'lojistik', label: 'Lojistik Planlama', statuses: [TradeStatus.QUOTING] },
-  { id: 'gumruk', label: 'Gümrük & Belge', statuses: [TradeStatus.LOGISTICS_APPROVED, TradeStatus.DOCUMENTS_PENDING] },
-  { id: 'odeme', label: 'Ödeme Onayı', statuses: [TradeStatus.DOCUMENTS_APPROVED] },
-  { id: 'sevkiyat', label: 'Sevkiyat & Sigorta', statuses: [TradeStatus.IN_TRANSIT] },
-  { id: 'teslimat', label: 'Teslim Edildi', statuses: [TradeStatus.COMPLETED] },
+const trackingSteps: {
+  id: string;
+  label: string;
+  statuses: readonly BuyerTradeStatus[];
+}[] = [
+  { id: 'siparis', label: 'Sipariş', statuses: ['PENDING', 'ORDERED'] },
+  { id: 'lojistik', label: 'Lojistik Planlama', statuses: ['QUOTING'] },
+  { id: 'gumruk', label: 'Gümrük & Belge', statuses: ['LOGISTICS_APPROVED', 'DOCUMENTS_PENDING'] },
+  { id: 'odeme', label: 'Ödeme Onayı', statuses: ['DOCUMENTS_APPROVED'] },
+  { id: 'sevkiyat', label: 'Sevkiyat & Sigorta', statuses: ['IN_TRANSIT'] },
+  { id: 'teslimat', label: 'Teslim Edildi', statuses: ['COMPLETED'] },
 ];
 
 export default function BuyerOrderDetailPage({ params: paramsPromise }: { params: Promise<{ id: string }> }) {
   const params = use(paramsPromise);
   const [talep, setTalep] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [supportOpen, setSupportOpen] = useState(false);
 
   useEffect(() => {
     async function loadData() {
@@ -63,7 +79,9 @@ export default function BuyerOrderDetailPage({ params: paramsPromise }: { params
     return <div className="p-20 text-center text-slate-400">Sipariş bulunamadı.</div>;
   }
 
-  const currentStepIndex = trackingSteps.findIndex(step => (step.statuses as TradeStatus[]).includes(talep.status));
+  const currentStepIndex = trackingSteps.findIndex((step) =>
+    (step.statuses as readonly string[]).includes(talep.status as string),
+  );
   const details = {
     location: talep.status === 'IN_TRANSIT' ? 'Yolda / Sigorta Korumasında' : (talep.status === 'COMPLETED' ? 'Adresinizde' : 'Hubify İşlem Merkezi'),
     eta: talep.status === 'COMPLETED' ? 'Teslim Edildi' : (talep.status === 'IN_TRANSIT' ? '2-3 Gün' : 'Süreç İlerliyor'),
@@ -193,12 +211,26 @@ export default function BuyerOrderDetailPage({ params: paramsPromise }: { params
             <p className="text-xs text-slate-500 mb-4 font-medium">
                 Bu siparişle ilgili bir sorun mu yaşıyorsunuz? Hubify destek ekibi yanınızda.
             </p>
-            <button className="w-full py-3 bg-slate-100 text-slate-900 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-slate-200 transition-all">
-                Destek Talebi Oluştur
+            <button
+              type="button"
+              onClick={() => setSupportOpen(true)}
+              className="w-full inline-flex items-center justify-center gap-2 py-3 bg-slate-100 text-slate-900 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-slate-200 transition-all"
+            >
+              <LifeBuoy className="w-4 h-4 text-rose-600" />
+              Destek Talebi Oluştur
             </button>
           </div>
         </div>
       </div>
+
+      <BuyerSupportDialog
+        open={supportOpen}
+        onClose={() => setSupportOpen(false)}
+        orderContext={{
+          referenceNumber: talep.referenceNumber,
+          tradeRequestId: talep.id,
+        }}
+      />
     </div>
   );
 }

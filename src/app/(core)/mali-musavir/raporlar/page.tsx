@@ -32,6 +32,16 @@ export default async function FinancialAdvReportsPage() {
     if (!hasInvoice || !hasVat) pendingCount++;
   }
 
+  /** Örnek trend serisi (göreceli ölçek); çubuklar sabit px yükseklik ile çizilir */
+  const chartValues = [40, 60, 30, 80, 50, 90, 100];
+  const chartMax = Math.max(...chartValues, 1);
+  const chartMaxPx = 192;
+  const monthLabels = Array.from({ length: chartValues.length }, (_, i) => {
+    const d = new Date();
+    d.setMonth(d.getMonth() - (chartValues.length - 1 - i));
+    return d.toLocaleDateString("tr-TR", { month: "short" });
+  });
+
   return (
     <div className="space-y-6">
       <section className="rounded-3xl border border-slate-200 bg-slate-900 p-6 text-white shadow-sm">
@@ -95,25 +105,37 @@ export default async function FinancialAdvReportsPage() {
       </div>
 
       <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h2 className="text-lg font-bold text-slate-900 mb-6">Aylık Özet Grafiği</h2>
-        <div className="h-64 flex items-end gap-2 text-center text-xs font-bold text-slate-500">
-          {[40, 60, 30, 80, 50, 90, 100].map((height, idx) => (
-            <div key={idx} className="flex-1 flex flex-col items-center gap-2">
-              <div 
-                className="w-full bg-slate-100 rounded-t-lg relative group transition-all hover:bg-slate-200"
-                style={{ height: "100%" }}
+        <div className="mb-6 flex flex-wrap items-end justify-between gap-2">
+          <h2 className="text-lg font-bold text-slate-900">Aylık Özet Grafiği</h2>
+          <p className="text-xs text-slate-500">
+            Son 7 ay (göreceli hacim). İşlenen toplam dosya:{" "}
+            <strong className="text-slate-700">{totalProcessed}</strong>
+          </p>
+        </div>
+        <div className="flex items-end justify-between gap-1 border-b border-slate-100 pb-2 pt-2 sm:gap-3">
+          {chartValues.map((val, idx) => {
+            const barPx = Math.max(12, Math.round((val / chartMax) * chartMaxPx));
+            return (
+              <div
+                key={idx}
+                className="flex min-h-[220px] flex-1 flex-col items-center justify-end gap-2"
               >
-                <div 
-                  className="absolute bottom-0 left-0 right-0 bg-sky-500 rounded-t-lg transition-all" 
-                  style={{ height: `${height}%` }}
-                ></div>
-                <div className="opacity-0 group-hover:opacity-100 absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white px-2 py-1 rounded text-[10px] pointer-events-none transition-opacity">
-                  {height} İşlem
+                <div className="group relative mx-auto flex h-[192px] w-full max-w-[52px] flex-col justify-end">
+                  <div
+                    className="w-full rounded-t-lg bg-gradient-to-t from-sky-600 to-sky-400 shadow-sm transition-all hover:from-sky-700 hover:to-sky-500"
+                    style={{ height: `${barPx}px` }}
+                    title={`Göreceli hacim: ${val}`}
+                  />
+                  <span className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-1 -translate-x-1/2 whitespace-nowrap rounded bg-slate-900 px-2 py-1 text-[10px] font-bold text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
+                    {val}
+                  </span>
                 </div>
+                <span className="text-center text-[10px] font-bold capitalize text-slate-500">
+                  {monthLabels[idx]}
+                </span>
               </div>
-              <span className="uppercase tracking-widest text-[9px]">Ay {idx + 1}</span>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </section>
     </div>

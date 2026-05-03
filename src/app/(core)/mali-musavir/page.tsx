@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { DocumentType, TradeStatus, UserRole } from "@prisma/client";
-import { BadgeCheck, FileText, Landmark } from "lucide-react";
+import { FileText, Landmark } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/auth-utils";
 import { uploadInvoice, uploadVatReport } from "./actions";
@@ -18,16 +18,10 @@ export default async function FinancialAdvPage() {
     orderBy: { updatedAt: "asc" },
   });
 
-  const completedQueue = await prisma.tradeRequest.findMany({
-    where: { 
-      status: { in: [TradeStatus.IN_TRANSIT, TradeStatus.COMPLETED] }
+  const completedCount = await prisma.tradeRequest.count({
+    where: {
+      status: { in: [TradeStatus.IN_TRANSIT, TradeStatus.COMPLETED] },
     },
-    include: {
-      exporter: { select: { fullName: true } },
-      documents: true,
-    },
-    orderBy: { updatedAt: "desc" },
-    take: 10,
   });
 
   return (
@@ -51,7 +45,7 @@ export default async function FinancialAdvPage() {
             </div>
             <div className="bg-emerald-500/20 backdrop-blur-md rounded-2xl p-4 border border-emerald-500/20 min-w-[140px]">
               <p className="text-[10px] font-black text-emerald-300 uppercase tracking-widest">Tamamlanan</p>
-              <p className="text-3xl font-black text-emerald-400 mt-1">{completedQueue.length}</p>
+              <p className="text-3xl font-black text-emerald-400 mt-1">{completedCount}</p>
             </div>
           </div>
         </div>
@@ -153,33 +147,6 @@ export default async function FinancialAdvPage() {
           <div className="p-12 border-2 border-dashed border-slate-200 rounded-3xl text-center text-slate-400 font-bold uppercase tracking-widest text-xs">Bekleyen işlem bulunmuyor</div>
         )}
       </div>
-      </div>
-
-      {/* Completed History */}
-      <div className="space-y-4">
-        <h2 className="text-xl font-black text-slate-900 flex items-center gap-2 px-1">
-          <BadgeCheck className="w-5 h-5 text-emerald-600" />
-          İşlem Geçmişi
-        </h2>
-        <div className="grid grid-cols-1 gap-3">
-          {completedQueue.map((request) => (
-            <div key={request.id} className="rounded-2xl border border-slate-200 bg-white p-5 flex items-center justify-between hover:bg-slate-50/50 transition-colors">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center">
-                  <Landmark className="w-5 h-5 text-emerald-600" />
-                </div>
-                <div>
-                  <p className="font-black text-slate-900">{request.referenceNumber}</p>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">İhracatçı: {request.exporter.fullName} • {request.status}</p>
-                </div>
-              </div>
-              <div className="text-right">
-                <p className="text-xs font-black text-slate-900">TAMAMLANDI</p>
-                <p className="text-[10px] font-bold text-slate-400 uppercase">{new Date(request.updatedAt).toLocaleDateString('tr-TR')}</p>
-              </div>
-            </div>
-          ))}
-        </div>
       </div>
     </div>
   );

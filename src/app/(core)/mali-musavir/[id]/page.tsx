@@ -7,11 +7,20 @@ import FileUploadButton from "@/components/forms/FileUploadButton";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-export default async function FinancialAdvRequestDetailsPage({ params }: { params: { id: string } }) {
+export default async function FinancialAdvRequestDetailsPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   await requireRole([UserRole.FINANCIAL_ADV]);
 
+  const { id } = await params;
+  if (!id) {
+    notFound();
+  }
+
   const request = await prisma.tradeRequest.findUnique({
-    where: { id: params.id },
+    where: { id },
     include: {
       exporter: { select: { fullName: true, email: true } },
       buyer: { select: { fullName: true, email: true } },

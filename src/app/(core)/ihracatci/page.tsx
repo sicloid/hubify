@@ -8,11 +8,10 @@ import { StatusBadge, OperationStatus } from "@/components/operasyon/StatusBadge
 import { useEffect, useState } from 'react';
 import { getTradeRequests } from './actions';
 import { getPoolStats } from '../lojistik/actions';
-import { TradeStatus } from '@prisma/client';
 import { GlobalTradeRadar } from "@/components/operasyon/GlobalTradeRadar";
 
-// Map Prisma status to OperationStatus
-const mapStatus = (status: TradeStatus): OperationStatus => {
+// Map Prisma status to OperationStatus (istemcide @prisma/client import edilmez)
+const mapStatus = (status: string): OperationStatus => {
   switch (status) {
     case 'PENDING': return 'Beklemede';
     case 'ORDERED': return 'Sipariş Verildi';
