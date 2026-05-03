@@ -232,7 +232,7 @@ export async function markAsDelivered(tradeRequestId: string) {
     revalidatePath("/lojistik", "layout");
     revalidatePath("/pazaryeri", "layout");
     revalidatePath("/sigorta", "layout");
-    revalidateTag('trade-requests');
+    revalidateTag('trade-requests', { expire: 0 });
     
     return { success: true };
   } catch (error) {

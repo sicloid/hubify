@@ -115,13 +115,9 @@ export default function Sidebar({ session }: SidebarProps) {
           ]
         : [
             { name: "Taleplerim", icon: FileText, route: "/taleplerim" },
-            ...(role !== "BUYER"
-              ? [
-                  { name: "Kargo & Lojistik", icon: Truck, route: "#lojistik" },
-                  { name: "Gümrük Belgeleri", icon: Files, route: "#belgeler" },
-                  { name: "Fatura & Finans", icon: Landmark, route: "#finans" },
-                ]
-              : []),
+            { name: "Kargo & Lojistik", icon: Truck, route: "#lojistik" },
+            { name: "Gümrük Belgeleri", icon: Files, route: "#belgeler" },
+            { name: "Fatura & Finans", icon: Landmark, route: "#finans" },
           ];
 
   return (

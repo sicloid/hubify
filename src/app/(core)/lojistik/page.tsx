@@ -1,7 +1,7 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Filter, Anchor, Layers, Box, TrendingDown, Users, Ship, ArrowUpRight, X, CheckCircle2, Clock } from "lucide-react";
+import { Search, Filter, Anchor, Layers, Box, TrendingDown, Users, Ship, ArrowUpRight, X, CheckCircle2, Clock, Truck } from "lucide-react";
 import Link from "next/link";
 import { StatusBadge, OperationStatus } from "@/components/operasyon/StatusBadge";
 import { useEffect, useState } from 'react';

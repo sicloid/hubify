@@ -43,7 +43,7 @@ export async function uploadInsurancePolicyPdf(tradeRequestId: string, formData:
   revalidatePath("/sigorta/raporlar");
   revalidatePath("/lojistik", "layout");
   revalidatePath("/pazaryeri", "layout");
-  revalidateTag("trade-requests");
+  revalidateTag("trade-requests", { expire: 0 });
 }
 
 /** Poliçe PDF’i sistemde olan talebi yola çıkarır (IN_TRANSIT). */
@@ -77,7 +77,7 @@ export async function dispatchInsuredShipment(tradeRequestId: string) {
   revalidatePath("/sigorta/raporlar");
   revalidatePath("/lojistik", "layout");
   revalidatePath("/pazaryeri", "layout");
-  revalidateTag("trade-requests");
+  revalidateTag("trade-requests", { expire: 0 });
   return { success: true as const };
 }
 
