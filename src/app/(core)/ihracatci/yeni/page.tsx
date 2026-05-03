@@ -8,6 +8,7 @@ import { createTradeRequest } from '../actions';
 
 export default function YeniTalepPage() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageFileName, setImageFileName] = useState<string | null>(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -31,8 +32,11 @@ export default function YeniTalepPage() {
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setImageFileName(file.name);
       const url = URL.createObjectURL(file);
       setImagePreview(url);
+    } else {
+      setImageFileName(null);
     }
   };
 
@@ -82,6 +86,14 @@ export default function YeniTalepPage() {
                         className="absolute inset-0 opacity-0 cursor-pointer" 
                       />
                     </div>
+                    {imageFileName ? (
+                      <p
+                        className="truncate text-center text-xs font-medium text-slate-600"
+                        title={imageFileName}
+                      >
+                        Seçilen dosya: {imageFileName}
+                      </p>
+                    ) : null}
                   </div>
 
                   <div className="md:col-span-2 space-y-6">

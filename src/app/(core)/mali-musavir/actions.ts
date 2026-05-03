@@ -40,6 +40,7 @@ export async function uploadInvoice(tradeRequestId: string, formData: FormData) 
   }
 
   revalidatePath("/mali-musavir", "layout");
+  revalidatePath(`/mali-musavir/${tradeRequestId}`);
 }
 
 export async function uploadVatReport(tradeRequestId: string, formData: FormData) {
@@ -108,5 +109,6 @@ export async function uploadVatReport(tradeRequestId: string, formData: FormData
   });
 
   revalidatePath("/mali-musavir", "layout");
+  revalidatePath(`/mali-musavir/${tradeRequestId}`);
   revalidatePath("/sigorta", "layout");
 }

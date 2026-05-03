@@ -3,13 +3,17 @@
 import { ClipboardList, Shield, FileText, Upload, CheckCircle2, Loader2, ExternalLink } from "lucide-react";
 import { AnimatedPageWrapper, EmptyState } from "@/components/operasyon/AnimatedWrappers";
 import { useEffect, useState } from "react";
-import { getPendingPolicies, issuePolicyAndDispatch } from "../actions";
+import { getPendingPolicies, uploadInsurancePolicyPdf } from "../actions";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function PoliceBekleyenPage() {
   const [requests, setRequests] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [processingId, setProcessingId] = useState<string | null>(null);
+  /** Poliçe PDF seçildiğinde dosya adı (talep id → dosya adı) */
+  const [selectedPolicyFileNames, setSelectedPolicyFileNames] = useState<Record<string, string>>(
+    {},
+  );
 
   async function loadData() {
     setIsLoading(true);
@@ -28,8 +32,15 @@ export default function PoliceBekleyenPage() {
 
     try {
       const formData = new FormData(e.currentTarget);
-      await issuePolicyAndDispatch(id, formData);
-      alert("Poliçe oluşturuldu ve ürün yola çıkarıldı!");
+      await uploadInsurancePolicyPdf(id, formData);
+      setSelectedPolicyFileNames((prev) => {
+        const next = { ...prev };
+        delete next[id];
+        return next;
+      });
+      alert(
+        "Poliçe kesildi (PDF kaydedildi). Süreci ve sevkiyat başlatmayı ‘Ulaşmamış poliçeler’ ekranından yapabilirsiniz.",
+      );
       await loadData();
     } catch (error) {
       alert("İşlem sırasında bir hata oluştu.");
@@ -48,8 +59,9 @@ export default function PoliceBekleyenPage() {
               Poliçe Bekleyen Dosyalar
             </h1>
             <p className="mt-2 text-slate-400 max-w-xl">
-              Mali Müşavir onayı almış dosyalar poliçe düzenlenmek üzere sıraya alınmıştır. 
-              Poliçe yüklendiğinde ürün otomatik olarak <strong>Yolda</strong> durumuna geçecektir.
+              Mali müşavir onayı almış dosyalar burada listelenir. <strong className="text-white">Poliçe kes</strong> ile PDF
+              yükleyin; süreci takip etmek ve sevkiyatı başlatmak için{" "}
+              <strong className="text-white">Ulaşmamış poliçeler</strong> ekranına geçin.
             </p>
           </div>
           <div className="absolute right-[-20px] top-[-20px] opacity-10 rotate-12">
@@ -128,12 +140,27 @@ export default function PoliceBekleyenPage() {
                             required 
                             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                             id={`file-${request.id}`}
+                            onChange={(e) => {
+                              const f = e.target.files?.[0];
+                              setSelectedPolicyFileNames((prev) => ({
+                                ...prev,
+                                [request.id]: f?.name ?? "",
+                              }));
+                            }}
                           />
                           <div className="border-2 border-dashed border-slate-300 rounded-2xl p-4 text-center group-hover/upload:border-sky-400 group-hover/upload:bg-white transition-all">
                             <Upload className="h-6 w-6 text-slate-400 mx-auto mb-2 group-hover/upload:text-sky-500 group-hover/upload:scale-110 transition-all" />
-                            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Poliçe PDF Seçin</p>
+                            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Poliçe dosyası seçin</p>
                           </div>
                         </div>
+                        {selectedPolicyFileNames[request.id] ? (
+                          <p
+                            className="truncate text-center text-xs font-medium text-slate-700"
+                            title={selectedPolicyFileNames[request.id]}
+                          >
+                            Seçilen dosya: {selectedPolicyFileNames[request.id]}
+                          </p>
+                        ) : null}
                         <button
                           type="submit"
                           disabled={processingId === request.id}
@@ -146,7 +173,7 @@ export default function PoliceBekleyenPage() {
                             </>
                           ) : (
                             <>
-                              Poliçe Kes & Yola Çıkar
+                              Poliçe kes
                               <Shield className="h-4 w-4" />
                             </>
                           )}

@@ -22,6 +22,7 @@ import {
   LifeBuoy,
   ShoppingBag,
   History,
+  Send,
 } from "lucide-react";
 import { AuthSession } from "@/lib/auth-utils";
 import { motion } from "framer-motion";
@@ -160,6 +161,12 @@ export default function Sidebar({ session }: SidebarProps) {
                 icon: ClipboardList,
               },
               {
+                href: "/sigorta/ulasmayan-police",
+                label: "Ulaşmamış poliçeler",
+                sublabel: "Kesimden tamamlanana kadar süreç",
+                icon: Send,
+              },
+              {
                 href: "/sigorta/tamamlanan",
                 label: "Tamamlanan Sevkiyatlar",
                 sublabel: "Arşiv ve poliçe kayıtları",
@@ -227,7 +234,7 @@ export default function Sidebar({ session }: SidebarProps) {
               Modüller
             </div>
             {[
-              { name: "Taleplerim", icon: FileText, route: "/taleplerim" },
+              { name: "Onayladığım İşlemler", icon: FileText, route: "/taleplerim" },
             ].map((item, idx) => (
               <Link key={idx} href={item.route} className="block relative mt-2">
                 {pathname === item.route && (

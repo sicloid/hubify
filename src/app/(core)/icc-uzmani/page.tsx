@@ -3,17 +3,15 @@ import {
   CheckCheck,
   Eye,
   FileCheck2,
-  FilePlus2,
   FileWarning,
   PackageCheck,
-  Radar,
   ShieldCheck,
-  Sparkles,
   Stamp,
   Timer,
 } from "lucide-react";
 import Link from "next/link";
 import { requireRole } from "@/lib/auth-utils";
+import { formatTradeMoney } from "@/lib/format-trade-money";
 import { prisma } from "@/lib/prisma";
 import { finalizeIccReview, toggleDocumentApproval, uploadComplianceDocument } from "./actions";
 import { type ComponentType } from "react";
@@ -42,6 +40,7 @@ export default async function ICCExpertPage() {
     },
     include: {
       exporter: { select: { fullName: true } },
+      buyer: { select: { fullName: true, email: true } },
       documents: true,
       quotes: {
         include: {
@@ -111,23 +110,72 @@ export default async function ICCExpertPage() {
               (doc) => doc.type === DocumentType.CUSTOMS_DECLARATION && doc.isApproved,
             );
             const readyForFinalApproval = hasApprovedBillOfLading && hasApprovedCustoms;
+            const acceptedQuote = request.quotes.find((q) => q.isAccepted);
 
             return (
               <section
                 key={request.id}
                 className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition-all hover:shadow-xl hover:shadow-slate-200/50 group"
               >
-                <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                  <div>
-                    <div className="flex items-center gap-2">
+                <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                  <div className="min-w-0 flex-1 space-y-3">
+                    <div className="flex flex-wrap items-center gap-2">
                       <h2 className="text-xl font-black text-slate-900 tracking-tight">{request.referenceNumber}</h2>
                       <span className="px-2 py-0.5 bg-sky-50 text-sky-600 rounded-lg text-[10px] font-black uppercase tracking-tighter">İnceleniyor</span>
                     </div>
-                    <p className="text-xs font-bold text-slate-400 uppercase mt-1 tracking-tight">
-                      İhracatçı: {request.exporter.fullName} • Oluşturulma: {new Date(request.createdAt).toLocaleDateString('tr-TR')}
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-tight">
+                      İhracatçı: {request.exporter.fullName} • Oluşturulma:{" "}
+                      {new Date(request.createdAt).toLocaleDateString("tr-TR")}
                     </p>
+                    <div className="rounded-2xl border border-slate-100 bg-slate-50/90 p-4">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Talep özeti</p>
+                      <p className="mt-2 text-sm font-bold text-slate-900">{request.title}</p>
+                      {request.description ? (
+                        <p className="mt-1 line-clamp-2 text-xs text-slate-600">{request.description}</p>
+                      ) : null}
+                      <dl className="mt-3 grid grid-cols-1 gap-2 text-xs sm:grid-cols-2">
+                        <div>
+                          <dt className="font-medium text-slate-400">Ağırlık</dt>
+                          <dd className="font-semibold text-slate-800">{request.weight} kg</dd>
+                        </div>
+                        <div>
+                          <dt className="font-medium text-slate-400">Hedef</dt>
+                          <dd className="font-semibold text-slate-800">
+                            {request.destinationCity || "—"}
+                          </dd>
+                        </div>
+                        <div>
+                          <dt className="font-medium text-slate-400">Alıcı</dt>
+                          <dd className="font-semibold text-slate-800">
+                            {request.buyer?.fullName ?? "—"}
+                          </dd>
+                        </div>
+                        <div>
+                          <dt className="font-medium text-slate-400">Tutar</dt>
+                          <dd className="font-semibold text-slate-800">
+                            {formatTradeMoney(request.totalPrice, request.currency)}
+                          </dd>
+                        </div>
+                        {acceptedQuote ? (
+                          <div className="sm:col-span-2">
+                            <dt className="font-medium text-slate-400">Kabul edilen lojistik</dt>
+                            <dd className="font-semibold text-slate-800">
+                              {acceptedQuote.logistics.fullName} • {acceptedQuote.price.toString()}{" "}
+                              {acceptedQuote.currency} ({acceptedQuote.estimatedDays} gün)
+                            </dd>
+                          </div>
+                        ) : null}
+                      </dl>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-3">
+                  <div className="flex shrink-0 flex-col gap-2 sm:flex-row lg:flex-col">
+                    <Link
+                      href={`/icc-uzmani/${encodeURIComponent(request.referenceNumber)}`}
+                      className="inline-flex items-center justify-center gap-2 rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm shadow-sky-600/20 transition hover:bg-sky-700"
+                    >
+                      <Eye className="h-4 w-4" />
+                      Talep detayı
+                    </Link>
                     <FinalizeStampButton
                       action={finalizeIccReview.bind(null, request.id)}
                       disabled={!readyForFinalApproval}
