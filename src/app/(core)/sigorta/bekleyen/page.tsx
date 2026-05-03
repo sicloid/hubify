@@ -38,12 +38,9 @@ export default function PoliceBekleyenPage() {
         delete next[id];
         return next;
       });
-      alert(
-        "Poliçe kesildi (PDF kaydedildi). Süreci ve sevkiyat başlatmayı ‘Ulaşmamış poliçeler’ ekranından yapabilirsiniz.",
-      );
       await loadData();
     } catch (error) {
-      alert("İşlem sırasında bir hata oluştu.");
+      console.error("Poliçe yükleme:", error);
     } finally {
       setProcessingId(null);
     }
