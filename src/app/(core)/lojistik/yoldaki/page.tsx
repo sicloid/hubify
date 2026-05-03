@@ -95,13 +95,25 @@ export default function LojistikYoldakiPage() {
                   </div>
 
                   <div className="space-y-4">
-                    <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                      <motion.div 
-                        initial={{ width: "70%" }}
-                        animate={{ width: "90%" }}
-                        transition={{ duration: 2, repeat: Infinity, repeatType: "reverse" }}
-                        className="h-full bg-amber-500"
-                      />
+                    <div className="relative flex items-center h-10">
+                      <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                        <motion.div 
+                          initial={{ width: "94%" }}
+                          animate={{ width: "99%" }}
+                          transition={{ duration: 4, repeat: Infinity, repeatType: "reverse", ease: "easeInOut" }}
+                          className="h-full bg-amber-500"
+                        />
+                      </div>
+                      <motion.div
+                        initial={{ left: "94%" }}
+                        animate={{ left: "99%" }}
+                        transition={{ duration: 4, repeat: Infinity, repeatType: "reverse", ease: "easeInOut" }}
+                        className="absolute transform -translate-x-1/2 flex items-center justify-center"
+                      >
+                        <div className="w-8 h-8 bg-white rounded-full border-2 border-amber-500 shadow-md flex items-center justify-center overflow-hidden">
+                          <Truck className="w-4 h-4 text-amber-600 fill-amber-50" />
+                        </div>
+                      </motion.div>
                     </div>
                     
                     <button
