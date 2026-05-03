@@ -15,7 +15,8 @@ Tüm veritabanı ve durum (status) akışı bu pipeline'a göre tasarlanmalıdı
 3. **Konsolidasyon (Lojistik):** Lojistik firması sipariş edilen yükleri konsolide eder ve fiyat teklifi sunar (status: `QUOTING` → `LOGISTICS_APPROVED`).
 4. **Yasal Onay (ICC Uzmanı):** Konsolide edilen yüklerin gümrük yasalarına uygunluğunu denetler.
 5. **Finans (Mali Müşavir):** İhracat faturaları ve KDV iade işlemleri mali müşavir tarafından sisteme işlenir.
-6. **Güvence (Sigorta):** Sigorta poliçesi eklenir, yük yola çıkar (status: `IN_TRANSIT` → `COMPLETED`).
+6. **Güvence (Sigorta):** Sigorta poliçesi eklenir, yük yola çıkar (status: `IN_TRANSIT`).
+7. **Teslimat (Lojistik):** Ürünün teslim edildi bilgisini girmek için süreç tekrar lojistiğe yönlendirilir. Lojistik uzmanı "Teslim Edildi" seçeneğine tıkladığında ürünün yolculuğu sona erer (status: `COMPLETED`).
 
 ## 🎬 3. GÖRSEL HİKAYELEŞTİRME VE ETKİLEYİCİ ANİMASYONLAR (ZORUNLUDUR!)
 Hackathon jürilerini etkilemek için kuru tablolar ve hareketsiz formlar KABUL EDİLEMEZ. Sisteme `framer-motion` kurulmuştur ve her modül, kullanıcının işlemi gerçekten hissedeceği şekilde **animasyonlu ve görsel ağırlıklı** olmalıdır.
