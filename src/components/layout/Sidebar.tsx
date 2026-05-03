@@ -106,7 +106,6 @@ export default function Sidebar({ session }: SidebarProps) {
         ]
       : role === "LOGISTICS"
         ? [
-            { name: "Lojistik Paneli", icon: LayoutDashboard, route: "/lojistik" },
             { name: "Yoldaki Ürünler", icon: Truck, route: "/lojistik/yoldaki" },
           ]
       : role === "BUYER"
