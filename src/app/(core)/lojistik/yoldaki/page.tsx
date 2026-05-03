@@ -1,21 +1,23 @@
 "use client";
 
-import { Truck, PackageCheck, Loader2, MapPin, Search } from "lucide-react";
-import { AnimatedPageWrapper, EmptyState } from "@/components/operasyon/AnimatedWrappers";
+import { Truck, PackageCheck, Loader2, MapPin, Search, CheckCircle2 } from "lucide-react";
+import { EmptyState } from "@/components/operasyon/AnimatedWrappers";
 import { useEffect, useState } from "react";
 import { getActiveShipments, markAsDelivered } from "../actions";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 
 export default function LojistikYoldakiPage() {
   const [shipments, setShipments] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [processingId, setProcessingId] = useState<string | null>(null);
+  const [pendingConfirmId, setPendingConfirmId] = useState<string | null>(null);
+  /** Teslim sunucuda kaydedildi; kısa süre "Onaylandı" gösterilir */
+  const [confirmedDeliveryId, setConfirmedDeliveryId] = useState<string | null>(null);
 
   async function loadData() {
     setIsLoading(true);
     const data = await getActiveShipments();
-    // Sadece yolda olanları filtrele
-    setShipments(data.filter((s: any) => s.status === 'IN_TRANSIT'));
+    setShipments(data.filter((s: any) => s.status === "IN_TRANSIT"));
     setIsLoading(false);
   }
 
@@ -24,119 +26,159 @@ export default function LojistikYoldakiPage() {
   }, []);
 
   const handleComplete = async (id: string) => {
-    if (!confirm('Bu ürünün teslim edildiğini onaylıyor musunuz? Bu işlem geri alınamaz.')) return;
-    
     setProcessingId(id);
     try {
       await markAsDelivered(id);
-      alert("Teslimat başarıyla onaylandı!");
-      await loadData();
+      setPendingConfirmId(null);
+      setConfirmedDeliveryId(id);
+      setProcessingId(null);
+      window.setTimeout(() => {
+        setConfirmedDeliveryId(null);
+        void loadData();
+      }, 1600);
     } catch (error) {
-      alert("Hata oluştu.");
-    } finally {
+      console.error("Teslimat onayı:", error);
       setProcessingId(null);
     }
   };
 
   return (
-    <AnimatedPageWrapper>
-      <div className="space-y-6">
-        <section className="rounded-3xl border border-slate-200 bg-slate-900 p-8 text-white shadow-xl relative overflow-hidden">
-          <div className="relative z-10">
-            <h1 className="flex items-center gap-3 text-3xl font-bold">
-              <Truck className="h-8 w-8 text-amber-400" />
-              Yoldaki Ürünler ve Sevkiyatlar
-            </h1>
-            <p className="mt-2 text-slate-400 max-w-xl">
-              Sigorta poliçesi kesilmiş ve varış noktasına doğru hareket halindeki tüm ürünleri buradan takip edebilir ve teslimat onayını verebilirsiniz.
-            </p>
-          </div>
-          <div className="absolute right-[-20px] top-[-20px] opacity-10 rotate-12">
-            <MapPin size={200} />
-          </div>
+    <div className="space-y-6">
+      <section className="relative overflow-hidden rounded-3xl border border-slate-200 bg-slate-900 p-8 text-white shadow-xl">
+        <div className="relative z-10">
+          <h1 className="flex items-center gap-3 text-3xl font-bold">
+            <Truck className="h-8 w-8 text-amber-400" />
+            Yoldaki Ürünler ve Sevkiyatlar
+          </h1>
+          <p className="mt-2 max-w-xl text-slate-400">
+            Sigorta poliçesi kesilmiş ve varış noktasına doğru hareket halindeki tüm ürünleri buradan takip edebilir ve teslimat onayını verebilirsiniz.
+          </p>
+        </div>
+        <div className="pointer-events-none absolute right-[-20px] top-[-20px] rotate-12 opacity-10">
+          <MapPin size={200} />
+        </div>
+      </section>
+
+      {isLoading ? (
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="h-10 w-10 animate-spin text-amber-500" />
+        </div>
+      ) : shipments.length === 0 ? (
+        <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+          <EmptyState
+            icon={Search}
+            title="Aktif Sevkiyat Yok"
+            description="Şu an yolda olan herhangi bir ürün bulunmuyor."
+          />
         </section>
-
-        {isLoading ? (
-          <div className="flex items-center justify-center py-20">
-            <Loader2 className="h-10 w-10 animate-spin text-amber-500" />
-          </div>
-        ) : shipments.length === 0 ? (
-          <section className="rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-            <EmptyState
-              icon={Search}
-              title="Aktif Sevkiyat Yok"
-              description="Şu an yolda olan herhangi bir ürün bulunmuyor."
-            />
-          </section>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <AnimatePresence mode="popLayout">
-              {shipments.map((shipment, idx) => (
-                <motion.div
-                  key={shipment.id}
-                  layout
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  transition={{ delay: idx * 0.1 }}
-                  className="bg-white border border-slate-200 rounded-[2rem] p-6 shadow-sm hover:shadow-md transition-all flex flex-col justify-between group"
-                >
-                  <div className="flex items-start justify-between mb-6">
-                    <div className="flex items-center gap-4">
-                      <div className="w-14 h-14 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center border border-amber-100 group-hover:scale-110 transition-transform">
-                        <Truck className="w-7 h-7" />
-                      </div>
-                      <div>
-                        <h3 className="font-bold text-slate-900 text-lg leading-tight">{shipment.title}</h3>
-                        <p className="text-xs font-black text-slate-400 uppercase tracking-widest mt-1">{shipment.referenceNumber}</p>
-                      </div>
-                    </div>
-                    <span className="px-3 py-1 bg-sky-50 text-sky-600 rounded-full text-[10px] font-black uppercase tracking-widest">Yolda</span>
+      ) : (
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          {shipments.map((shipment) => (
+            <div
+              key={shipment.id}
+              className="flex flex-col justify-between rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm"
+            >
+              <div className="mb-6 flex items-start justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-amber-100 bg-amber-50 text-amber-600">
+                    <Truck className="h-7 w-7" />
                   </div>
+                  <div>
+                    <h3 className="text-lg font-bold leading-tight text-slate-900">{shipment.title}</h3>
+                    <p className="mt-1 text-xs font-black uppercase tracking-widest text-slate-400">
+                      {shipment.referenceNumber}
+                    </p>
+                  </div>
+                </div>
+                <span className="rounded-full bg-sky-50 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-sky-600">
+                  Yolda
+                </span>
+              </div>
 
-                  <div className="space-y-4">
-                    <div className="relative flex items-center h-10">
-                      <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-                        <motion.div 
-                          initial={{ width: "94%" }}
-                          animate={{ width: "99%" }}
-                          transition={{ duration: 4, repeat: Infinity, repeatType: "reverse", ease: "easeInOut" }}
-                          className="h-full bg-amber-500"
-                        />
-                      </div>
-                      <motion.div
-                        initial={{ left: "94%" }}
-                        animate={{ left: "99%" }}
-                        transition={{ duration: 4, repeat: Infinity, repeatType: "reverse", ease: "easeInOut" }}
-                        className="absolute transform -translate-x-1/2 flex items-center justify-center"
+              <div className="space-y-4">
+                <div className="relative flex h-10 items-center">
+                  <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100">
+                    <motion.div
+                      initial={{ width: "94%" }}
+                      animate={{ width: "99%" }}
+                      transition={{
+                        duration: 4,
+                        repeat: Infinity,
+                        repeatType: "reverse",
+                        ease: "easeInOut",
+                      }}
+                      className="h-full bg-amber-500"
+                    />
+                  </div>
+                  <motion.div
+                    initial={{ left: "94%" }}
+                    animate={{ left: "99%" }}
+                    transition={{
+                      duration: 4,
+                      repeat: Infinity,
+                      repeatType: "reverse",
+                      ease: "easeInOut",
+                    }}
+                    className="absolute flex -translate-x-1/2 transform items-center justify-center"
+                  >
+                    <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border-2 border-amber-500 bg-white shadow-md">
+                      <Truck className="h-4 w-4 text-amber-600" />
+                    </div>
+                  </motion.div>
+                </div>
+
+                {confirmedDeliveryId === shipment.id ? (
+                  <div className="rounded-2xl border border-emerald-200 bg-emerald-50 py-8 text-center">
+                    <CheckCircle2 className="mx-auto mb-2 h-10 w-10 text-emerald-600" aria-hidden />
+                    <p className="text-lg font-black tracking-tight text-emerald-800">Onaylandı</p>
+                  </div>
+                ) : pendingConfirmId === shipment.id ? (
+                  <div className="space-y-4 rounded-2xl border border-amber-200 bg-amber-50/90 p-4 shadow-inner">
+                    <p className="text-center text-sm font-medium leading-relaxed text-slate-800">
+                      Bu ürünün teslim edildiğini <strong>onaylıyor musunuz?</strong> Bu işlem geri alınamaz.
+                    </p>
+                    <div className="flex flex-col gap-2 sm:flex-row">
+                      <button
+                        type="button"
+                        onClick={() => setPendingConfirmId(null)}
+                        disabled={processingId === shipment.id}
+                        className="flex-1 rounded-xl border border-slate-200 bg-white py-3 text-sm font-bold text-slate-700 shadow-sm hover:bg-slate-50 disabled:opacity-50"
                       >
-                        <div className="w-8 h-8 bg-white rounded-full border-2 border-amber-500 shadow-md flex items-center justify-center overflow-hidden">
-                          <Truck className="w-4 h-4 text-amber-600 fill-amber-50" />
-                        </div>
-                      </motion.div>
+                        Vazgeç
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => void handleComplete(shipment.id)}
+                        disabled={processingId === shipment.id}
+                        className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-600 py-3 text-sm font-bold text-white shadow-lg shadow-emerald-100 hover:bg-emerald-700 disabled:opacity-50"
+                      >
+                        {processingId === shipment.id ? (
+                          <Loader2 className="h-5 w-5 animate-spin" />
+                        ) : (
+                          <>
+                            <PackageCheck className="h-5 w-5" />
+                            Evet, onaylıyorum
+                          </>
+                        )}
+                      </button>
                     </div>
-                    
-                    <button
-                      onClick={() => handleComplete(shipment.id)}
-                      disabled={processingId === shipment.id}
-                      className="w-full py-4 bg-emerald-600 text-white rounded-2xl font-bold text-sm shadow-lg shadow-emerald-100 hover:bg-emerald-700 transition-all active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50"
-                    >
-                      {processingId === shipment.id ? (
-                        <Loader2 className="w-5 h-5 animate-spin" />
-                      ) : (
-                        <>
-                          <PackageCheck className="w-5 h-5" />
-                          Teslimat Onayı Ver
-                        </>
-                      )}
-                    </button>
                   </div>
-                </motion.div>
-              ))}
-            </AnimatePresence>
-          </div>
-        )}
-      </div>
-    </AnimatedPageWrapper>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setPendingConfirmId(shipment.id)}
+                    disabled={processingId === shipment.id || confirmedDeliveryId !== null}
+                    className="flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-600 py-4 text-sm font-bold text-white shadow-lg shadow-emerald-100 hover:bg-emerald-700 disabled:opacity-50"
+                  >
+                    <PackageCheck className="h-5 w-5" />
+                    Teslimat Onayı Ver
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
