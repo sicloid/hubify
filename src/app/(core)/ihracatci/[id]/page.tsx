@@ -6,6 +6,7 @@ import { ArrowLeft, CheckCircle2, DollarSign, Package, Truck, Ship, Calendar, Sh
 import Link from "next/link";
 import { StatusBadge, OperationStatus } from "@/components/operasyon/StatusBadge";
 import { getTradeRequestDetail, acceptQuote } from '../actions';
+import AnimatedApprovalButton from "@/components/operasyon/AnimatedApprovalButton";
 
 /** API'den gelen TradeStatus değerleri — istemcide @prisma/client kullanılmaz (require hatası önlenir) */
 type ExporterTradeStatus =
@@ -261,13 +262,15 @@ export default function ExporterTalepDetayPage({ params: paramsPromise }: { para
                           <CheckCircle2 className="w-4 h-4" /> Onaylandı
                         </div>
                       ) : talep.status === 'PENDING' || talep.status === 'QUOTING' ? (
-                        <button 
-                          onClick={() => handleAccept(quote.id)}
+                        <AnimatedApprovalButton
+                          onApprove={() => handleAccept(quote.id)}
                           disabled={!!isAccepting}
-                          className="px-6 py-3 bg-slate-900 text-white rounded-xl font-bold text-sm hover:bg-slate-800 transition-all hover:scale-105 active:scale-95 shadow-lg shadow-slate-200 disabled:opacity-50"
-                        >
-                          {isAccepting === quote.id ? "Onaylanıyor..." : "Teklifi Onayla"}
-                        </button>
+                          label="Teklifi Onayla"
+                          processingLabel="Onaylanıyor..."
+                          approvedLabel="Onaylandı ✓"
+                          icon={ShieldCheck}
+                          color="slate"
+                        />
                       ) : null}
                     </div>
                   </motion.div>

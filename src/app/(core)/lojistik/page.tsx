@@ -1,7 +1,8 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Filter, Anchor, Layers, Box, TrendingDown, Users, Ship, ArrowUpRight, X, CheckCircle2, Clock, Truck } from "lucide-react";
+import { Search, Filter, Anchor, Layers, Box, TrendingDown, Users, Ship, ArrowUpRight, X, CheckCircle2, Clock, Truck, PackageCheck } from "lucide-react";
+import AnimatedApprovalButton from "@/components/operasyon/AnimatedApprovalButton";
 import Link from "next/link";
 import { StatusBadge, OperationStatus } from "@/components/operasyon/StatusBadge";
 import { useEffect, useState } from 'react';
@@ -253,17 +254,18 @@ export default function LojistikPage() {
                         </div>
                         <div className="mt-4 md:mt-0 flex items-center gap-3">
                           <span className="px-3 py-1 bg-sky-50 text-sky-600 rounded-full text-[10px] font-black uppercase tracking-widest">Yolda</span>
-                          <button 
-                            onClick={async () => {
-                              if(confirm('Bu ürünün teslim edildiğini onaylıyor musunuz?')) {
-                                await markAsDelivered(shipment.id);
-                                await loadData();
-                              }
+                          <AnimatedApprovalButton
+                            onApprove={async () => {
+                              await markAsDelivered(shipment.id);
+                              await loadData();
                             }}
-                            className="px-6 py-2.5 bg-emerald-600 text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-100"
-                          >
-                            Teslim Edildi Olarak İşaretle
-                          </button>
+                            label="Teslim Edildi"
+                            processingLabel="Onaylanıyor..."
+                            approvedLabel="Teslim Edildi ✓"
+                            icon={PackageCheck}
+                            color="emerald"
+                            compact
+                          />
                         </div>
                       </div>
                     ))

@@ -2,6 +2,8 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import AnimatedApprovalButton from "@/components/operasyon/AnimatedApprovalButton";
+import { FileCheck, Undo2 } from "lucide-react";
 
 type DocumentApprovalButtonProps = {
   documentId: string;
@@ -20,30 +22,55 @@ export default function DocumentApprovalButton({
 
   const handleToggle = () => {
     const nextValue = !approved;
-    setApproved(nextValue);
 
-    startTransition(async () => {
-      try {
-        await action(documentId, nextValue);
-        router.refresh();
-      } catch {
-        setApproved(!nextValue);
-      }
+    return new Promise<void>((resolve, reject) => {
+      startTransition(async () => {
+        try {
+          await action(documentId, nextValue);
+          setApproved(nextValue);
+          router.refresh();
+          resolve();
+        } catch {
+          reject();
+        }
+      });
     });
   };
 
+  if (approved) {
+    return (
+      <button
+        type="button"
+        onClick={() => {
+          startTransition(async () => {
+            try {
+              await action(documentId, false);
+              setApproved(false);
+              router.refresh();
+            } catch {
+              /* noop */
+            }
+          });
+        }}
+        disabled={isPending}
+        className="inline-flex items-center gap-1.5 rounded-lg bg-amber-100 px-3 py-2 text-xs font-semibold text-amber-700 transition-all hover:bg-amber-200 hover:scale-[1.02] disabled:opacity-70"
+      >
+        <Undo2 className="h-3.5 w-3.5" />
+        {isPending ? "İşleniyor..." : "Onayı Geri Al"}
+      </button>
+    );
+  }
+
   return (
-    <button
-      type="button"
-      onClick={handleToggle}
+    <AnimatedApprovalButton
+      onApprove={handleToggle}
       disabled={isPending}
-      className={`rounded-lg px-3 py-2 text-xs font-semibold transition-all hover:scale-[1.02] disabled:opacity-70 ${
-        approved
-          ? "bg-amber-100 text-amber-700 hover:bg-amber-200"
-          : "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
-      }`}
-    >
-      {isPending ? "Isleniyor..." : approved ? "Onayi Geri Al" : "Belgeyi Onayla"}
-    </button>
+      label="Belgeyi Onayla"
+      processingLabel="Onaylanıyor..."
+      approvedLabel="Onaylandı ✓"
+      icon={FileCheck}
+      color="emerald"
+      compact
+    />
   );
 }

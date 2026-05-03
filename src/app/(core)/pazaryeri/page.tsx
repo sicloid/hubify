@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingCart, Package, MapPin, User, CreditCard, Shield, CheckCircle2, Clock, DollarSign, X } from 'lucide-react';
 import { getAvailableProducts, placeOrder, confirmPayment, getMyOrders } from './actions';
+import AnimatedApprovalButton from "@/components/operasyon/AnimatedApprovalButton";
 
 const currencySymbol: Record<string, string> = {
   USD: '$', EUR: '€', TRY: '₺', GBP: '£',
@@ -259,18 +260,16 @@ export default function PazaryeriPage() {
                 >
                   İptal
                 </button>
-                <button
-                  onClick={confirmOrder}
+                <AnimatedApprovalButton
+                  onApprove={confirmOrder}
                   disabled={isPending}
-                  className="flex-1 py-3 bg-brand-secondary text-white rounded-xl text-sm font-bold hover:brightness-110 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
-                >
-                  {isPending ? (
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  ) : (
-                    <CheckCircle2 className="w-4 h-4" />
-                  )}
-                  Siparişi Onayla
-                </button>
+                  label="Siparişi Onayla"
+                  processingLabel="Sipariş Veriliyor..."
+                  approvedLabel="Sipariş Verildi ✓"
+                  icon={CheckCircle2}
+                  color="emerald"
+                  fullWidth
+                />
               </div>
             </motion.div>
           </motion.div>

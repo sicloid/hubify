@@ -5,6 +5,7 @@ import { EmptyState } from "@/components/operasyon/AnimatedWrappers";
 import { useEffect, useState } from "react";
 import { getActiveShipments, markAsDelivered } from "../actions";
 import { motion } from "framer-motion";
+import AnimatedApprovalButton from "@/components/operasyon/AnimatedApprovalButton";
 
 export default function LojistikYoldakiPage() {
   const [shipments, setShipments] = useState<any[]>([]);
@@ -164,15 +165,18 @@ export default function LojistikYoldakiPage() {
                     </div>
                   </div>
                 ) : (
-                  <button
-                    type="button"
-                    onClick={() => setPendingConfirmId(shipment.id)}
+                  <AnimatedApprovalButton
+                    onApprove={() => {
+                      setPendingConfirmId(shipment.id);
+                    }}
                     disabled={processingId === shipment.id || confirmedDeliveryId !== null}
-                    className="flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-600 py-4 text-sm font-bold text-white shadow-lg shadow-emerald-100 hover:bg-emerald-700 disabled:opacity-50"
-                  >
-                    <PackageCheck className="h-5 w-5" />
-                    Teslimat Onayı Ver
-                  </button>
+                    label="Teslimat Onayı Ver"
+                    processingLabel="İşleniyor..."
+                    approvedLabel="Onaylandı ✓"
+                    icon={PackageCheck}
+                    color="emerald"
+                    fullWidth
+                  />
                 )}
               </div>
             </div>
