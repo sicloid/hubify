@@ -88,7 +88,7 @@ export default function Header({ session }: { session?: AuthSession | null }) {
 
   const handleLogout = async () => {
     await logoutAction();
-    router.push("/login");
+    router.push("/");
   };
 
   const formRef = useRef<HTMLFormElement>(null);

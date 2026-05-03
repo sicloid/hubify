@@ -61,7 +61,7 @@ export async function createTradeRequest(formData: FormData) {
 
     revalidatePath("/ihracatci");
     revalidatePath("/pazaryeri");
-    revalidateTag('trade-requests');
+    revalidateTag('trade-requests', { expire: 0 });
     return { success: true, id: request.id };
   } catch (error: any) {
     console.error("Talep oluşturma hatası detayları:", error);
@@ -150,7 +150,7 @@ export async function acceptQuote(quoteId: string, tradeRequestId: string) {
 
     revalidatePath(`/ihracatci/${tradeRequestId}`);
     revalidatePath("/ihracatci");
-    revalidateTag('trade-requests');
+    revalidateTag('trade-requests', { expire: 0 });
     return { success: true };
   } catch (error) {
     console.error("Teklif onaylama hatası:", error);

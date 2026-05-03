@@ -54,7 +54,7 @@ export async function placeOrder(tradeRequestId: string) {
     revalidatePath("/pazaryeri");
     revalidatePath("/ihracatci");
     revalidatePath("/lojistik");
-    revalidateTag('trade-requests');
+    revalidateTag('trade-requests', { expire: 0 });
     return { success: true };
   } catch (error) {
     console.error("Sipariş hatası:", error);
@@ -89,7 +89,7 @@ export async function confirmPayment(tradeRequestId: string) {
     revalidatePath("/pazaryeri");
     revalidatePath("/ihracatci");
     revalidatePath("/icc-uzmani");
-    revalidateTag('trade-requests');
+    revalidateTag('trade-requests', { expire: 0 });
     return { success: true };
   } catch (error) {
     console.error("Ödeme hatası:", error);

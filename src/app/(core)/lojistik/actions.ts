@@ -104,7 +104,7 @@ export async function createQuote(data: {
 
     revalidatePath("/lojistik");
     revalidatePath(`/lojistik/${data.tradeRequestId}`);
-    revalidateTag('trade-requests');
+    revalidateTag('trade-requests', { expire: 0 });
     return { success: true };
   } catch (error) {
     console.error("Teklif hatası:", error);
@@ -122,7 +122,7 @@ export async function autoConsolidate() {
     });
     
     revalidatePath("/lojistik");
-    revalidateTag('trade-requests');
+    revalidateTag('trade-requests', { expire: 0 });
     return { success: true };
   } catch (error) {
     console.error("Otomatik konsolidasyon hatası:", error);

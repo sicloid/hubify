@@ -1,7 +1,8 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { CheckCircle2, Stamp } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { CheckCircle2, Stamp, ShieldCheck } from "lucide-react";
 
 type FinalizeStampButtonProps = {
   action: (formData: FormData) => void | Promise<void>;
@@ -42,11 +43,11 @@ export default function FinalizeStampButton({ action, disabled }: FinalizeStampB
   const handleStamp = async () => {
     if (disabled || phase !== "idle") return;
     setPhase("stamping");
-    await wait(450);
+    await wait(600);
 
     setPhase("approved");
     await action(new FormData(formRef.current ?? undefined));
-    await wait(650);
+    await wait(900);
 
     setPhase("exiting");
     animateCardOut();
@@ -54,31 +55,95 @@ export default function FinalizeStampButton({ action, disabled }: FinalizeStampB
 
   return (
     <form action={action} ref={formRef} className="relative">
-      <button
+      {/* Main Button */}
+      <motion.button
         type="button"
         onClick={handleStamp}
         disabled={disabled || phase !== "idle"}
-        className={`relative inline-flex items-center gap-2 overflow-hidden rounded-xl px-4 py-2 text-sm font-semibold text-white transition-all ${
+        whileHover={!disabled && phase === "idle" ? { scale: 1.04, transition: { duration: 0.2 } } : {}}
+        whileTap={!disabled && phase === "idle" ? { scale: 0.96 } : {}}
+        className={`relative inline-flex items-center gap-2 overflow-hidden rounded-xl px-5 py-2.5 text-sm font-bold text-white transition-all ${
           disabled
-            ? "bg-slate-400"
-            : "bg-sky-600 hover:bg-sky-700 hover:scale-[1.02] active:scale-[0.98]"
+            ? "bg-slate-400 cursor-not-allowed"
+            : phase === "approved"
+            ? "bg-emerald-500 shadow-lg shadow-emerald-500/30"
+            : "bg-sky-600 hover:bg-sky-700 shadow-md shadow-sky-600/20"
         } disabled:opacity-80`}
       >
-        <Stamp className={`h-4 w-4 ${phase === "stamping" ? "animate-bounce" : ""}`} />
-        {phase === "stamping" ? "Damgalaniyor..." : phase === "approved" ? "Onaylandi" : "ICC Onayini Tamamla"}
+        {/* Stamp Icon with slam animation */}
+        <motion.span
+          animate={
+            phase === "stamping"
+              ? { y: [0, -14, 2, 0], scale: [1, 1.3, 0.85, 1], rotate: [0, -8, 4, 0] }
+              : phase === "approved"
+              ? { rotate: [0, -5, 5, 0], transition: { duration: 0.3 } }
+              : {}
+          }
+          transition={{ duration: 0.5, ease: "easeInOut" }}
+        >
+          {phase === "approved" ? (
+            <ShieldCheck className="h-4.5 w-4.5" />
+          ) : (
+            <Stamp className="h-4.5 w-4.5" />
+          )}
+        </motion.span>
 
-        <span
-          className={`pointer-events-none absolute left-[-40%] top-0 h-full w-1/3 bg-white/30 blur-md transition-transform duration-700 ${
-            phase === "approved" ? "translate-x-[300%]" : "translate-x-0"
-          }`}
+        <span>
+          {phase === "stamping"
+            ? "Damgalanıyor..."
+            : phase === "approved"
+            ? "Onaylandı ✓"
+            : "ICC Onayını Tamamla"}
+        </span>
+
+        {/* Shine sweep on approval */}
+        <motion.span
+          className="pointer-events-none absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
+          initial={{ x: "-120%" }}
+          animate={phase === "approved" ? { x: "120%" } : { x: "-120%" }}
+          transition={{ duration: 0.6, ease: "easeInOut" }}
         />
-      </button>
+      </motion.button>
 
-      {(phase === "stamping" || phase === "approved") && (
-        <div className="pointer-events-none absolute -right-2 -top-2 animate-ping rounded-full bg-emerald-500/80 p-1">
-          <CheckCircle2 className="h-3.5 w-3.5 text-white" />
-        </div>
-      )}
+      {/* Stamp Impact Ring — radiates outward on stamp */}
+      <AnimatePresence>
+        {phase === "stamping" && (
+          <motion.div
+            className="pointer-events-none absolute inset-0 flex items-center justify-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="absolute rounded-full border-2 border-sky-400"
+              initial={{ width: 0, height: 0, opacity: 1 }}
+              animate={{ width: 120, height: 120, opacity: 0 }}
+              transition={{ duration: 0.6, ease: "easeOut" }}
+            />
+            <motion.div
+              className="absolute rounded-full border-2 border-sky-300"
+              initial={{ width: 0, height: 0, opacity: 1 }}
+              animate={{ width: 80, height: 80, opacity: 0 }}
+              transition={{ duration: 0.5, delay: 0.1, ease: "easeOut" }}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Floating Approval Badge */}
+      <AnimatePresence>
+        {phase === "approved" && (
+          <motion.div
+            className="pointer-events-none absolute -right-3 -top-3 rounded-full bg-emerald-500 p-1.5 shadow-lg shadow-emerald-500/40"
+            initial={{ scale: 0, opacity: 0, rotate: -45 }}
+            animate={{ scale: 1, opacity: 1, rotate: 0 }}
+            exit={{ scale: 0, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 400, damping: 15 }}
+          >
+            <CheckCircle2 className="h-4 w-4 text-white" />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </form>
   );
 }
