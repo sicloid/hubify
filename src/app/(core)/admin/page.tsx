@@ -5,6 +5,7 @@ import { UserRole } from "@prisma/client";
 import { Shield, Users as UsersIcon } from "lucide-react";
 import { LiveShipmentMap } from "@/components/admin/LiveShipmentMap";
 import { LiveSystemLogs } from "@/components/admin/LiveSystemLogs";
+import { AdminDashboardStats } from "@/components/admin/AdminDashboardStats";
 
 export default async function AdminPage() {
   // 1. Guard Katmanı: Sadece ADMIN girebilir
@@ -28,6 +29,9 @@ export default async function AdminPage() {
           <p className="text-slate-500 text-sm mt-1">Platformdaki tüm operasyonları ve sistem güvenliğini yönetin.</p>
         </div>
       </div>
+
+      {/* Live Stats */}
+      <AdminDashboardStats />
 
       {/* Security Dashboards (Radar & Logs) */}
       <section className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full">
