@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import SupportChatBot from "@/components/support/SupportChatBot";
 import "./globals.css";
 
 const inter = Inter({
@@ -40,6 +41,7 @@ export default function RootLayout({
     <html lang="tr" className={`${inter.variable} antialiased h-full`}>
       <body suppressHydrationWarning className="min-h-full flex flex-col bg-slate-50 text-slate-900 font-sans">
         {children}
+        <SupportChatBot />
       </body>
     </html>
   );
